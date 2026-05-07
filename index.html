@@ -489,15 +489,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
     <div class="ts-label">Today's Priority</div>
     <div class="ts-row">
       <div class="ts-stat emergency">
-        <div class="ts-num">1</div>
+        <div class="ts-num" id="ts-emergency">—</div>
         <div class="ts-lbl">Emergency</div>
       </div>
       <div class="ts-stat">
-        <div class="ts-num">1</div>
+        <div class="ts-num" id="ts-urgent">—</div>
         <div class="ts-lbl">Urgent</div>
       </div>
       <div class="ts-stat">
-        <div class="ts-num">2</div>
+        <div class="ts-num" id="ts-monitor">—</div>
         <div class="ts-lbl">Monitor</div>
       </div>
     </div>
@@ -514,11 +514,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
     <div class="nav-label-sm">Overview</div>
     <button class="nav-item active" id="nav-patients" onclick="showPage('patients')">
       <span class="nav-icon">👥</span> All Patients
-      <span class="nav-badge badge-green">18</span>
+      <span class="nav-badge badge-green" id="nav-badge-all">—</span>
     </button>
     <button class="nav-item" id="nav-alerts" onclick="showPage('alerts')">
       <span class="nav-icon">🎯</span> Triage Queue
-      <span class="nav-badge badge-coral">4</span>
+      <span class="nav-badge badge-coral" id="nav-badge-triage">—</span>
     </button>
     <button class="nav-item" id="nav-performance" onclick="showPage('performance')">
       <span class="nav-icon">📊</span> Performance
@@ -529,19 +529,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
     <div class="nav-label-sm">Patient Filter</div>
     <button class="nav-item" onclick="filterAndShow('emergency')">
       <span class="nav-icon">🆘</span> Emergency
-      <span class="nav-badge badge-coral">1</span>
+      <span class="nav-badge badge-coral" id="nav-badge-emergency">—</span>
     </button>
     <button class="nav-item" onclick="filterAndShow('urgent')">
       <span class="nav-icon">🔴</span> Urgent
-      <span class="nav-badge badge-coral">1</span>
+      <span class="nav-badge badge-coral" id="nav-badge-urgent">—</span>
     </button>
     <button class="nav-item" onclick="filterAndShow('needs-attention')">
       <span class="nav-icon">🟡</span> Monitor
-      <span class="nav-badge badge-amber">2</span>
+      <span class="nav-badge badge-amber" id="nav-badge-monitor">—</span>
     </button>
     <button class="nav-item" onclick="filterAndShow('on-track')">
       <span class="nav-icon">✅</span> On Track
-      <span class="nav-badge badge-green">14</span>
+      <span class="nav-badge badge-green" id="nav-badge-ontrack">—</span>
     </button>
   </div>
 
@@ -558,8 +558,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   <div class="sidebar-footer">
     <div class="sf-label">Today</div>
     <div class="sf-stats">
-      <div class="sf-stat"><div class="sf-num">6</div><div class="sf-lbl">Sessions</div></div>
-      <div class="sf-stat"><div class="sf-num" style="color:var(--coral)">1</div><div class="sf-lbl">Emergency</div></div>
+      <div class="sf-stat"><div class="sf-num" id="sf-sessions">—</div><div class="sf-lbl">Sessions</div></div>
+      <div class="sf-stat"><div class="sf-num" id="sf-emergency" style="color:var(--coral)">—</div><div class="sf-lbl">Emergency</div></div>
     </div>
   </div>
 </aside>
@@ -572,7 +572,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   <div class="ph">
     <div class="ph-left">
       <h1 class="ph-title">All Patients</h1>
-      <p class="ph-sub">18 active · 1 emergency · 1 urgent · 2 monitoring</p>
+      <p class="ph-sub" id="patients-sub">Loading patients…</p>
     </div>
     <div class="ph-actions">
       <button class="btn btn-ghost">⬇ Export</button>
@@ -589,11 +589,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   </div>
 
   <div class="filter-row">
-    <div class="filter-chip active" onclick="setFilter(this,'all')">All <span class="filter-count">18</span></div>
-    <div class="filter-chip" onclick="setFilter(this,'emergency')" style="background:var(--coral-light);color:var(--coral);border-color:#F0C0BC">🆘 Emergency <span class="filter-count">1</span></div>
-    <div class="filter-chip" onclick="setFilter(this,'urgent')">🔴 Urgent <span class="filter-count">1</span></div>
-    <div class="filter-chip" onclick="setFilter(this,'needs-attention')">🟡 Monitor <span class="filter-count">2</span></div>
-    <div class="filter-chip" onclick="setFilter(this,'on-track')">✅ On Track <span class="filter-count">14</span></div>
+    <div class="filter-chip active" onclick="setFilter(this,'all')">All <span class="filter-count" id="fc-all">—</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'emergency')" style="background:var(--coral-light);color:var(--coral);border-color:#F0C0BC">🆘 Emergency <span class="filter-count" id="fc-emergency">—</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'urgent')">🔴 Urgent <span class="filter-count" id="fc-urgent">—</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'needs-attention')">🟡 Monitor <span class="filter-count" id="fc-monitor">—</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'on-track')">✅ On Track <span class="filter-count" id="fc-ontrack">—</span></div>
   </div>
 
   <div class="patient-grid" id="patientGrid">
@@ -1046,80 +1046,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   <div class="ph">
     <div class="ph-left">
       <h1 class="ph-title">Triage Queue</h1>
-      <p class="ph-sub">4 cases · 1 emergency requiring action today</p>
+      <p class="ph-sub" id="triage-sub">Loading…</p>
     </div>
     <div class="ph-actions">
       <button class="btn btn-ghost" onclick="showToast('✅ 2 low-risk cases auto-handled')">⚡ Auto-handle low-risk</button>
     </div>
   </div>
-
-  <!-- TIER 1: EMERGENCY -->
-  <div class="alert-tier">
-    <div class="alert-tier-header ath-emergency">🆘 Emergency — Act today</div>
-
-    <div class="alert-item" onclick="openPatient('rohan')" style="border-left:3px solid var(--coral);border-color:var(--coral)">
-      <div class="ai-icon emergency">🆘</div>
-      <div class="ai-body">
-        <div class="ai-title">Rohan Mehra — Possible nerve root involvement, Week 14</div>
-        <div class="ai-sub">Radiating left leg pain + left calf numbness during deadlift. Possible nerve irritation pattern at L4-L5. Exercise paused automatically. Patient acknowledged warning.</div>
-        <div class="ai-recommended">Neurological screen within 24h · Ask about bowel/bladder · Urgent MRI if numbness persists</div>
-        <div class="ai-dismissed">🔒 Logged: 7 May 10:02 PM · Patient notified ✅ · Appointment booked ✅</div>
-      </div>
-      <div class="ai-right">
-        <div class="ai-time">2 days ago</div>
-        <button class="ai-action emergency" onclick="event.stopPropagation();showToast('📞 Calling Rohan...')">📞 Call Now</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TIER 2: URGENT -->
-  <div class="alert-tier">
-    <div class="alert-tier-header ath-urgent">🔴 Urgent — Act this week</div>
-
-    <div class="alert-item" style="border-left:3px solid var(--coral)">
-      <div class="ai-icon coral">📵</div>
-      <div class="ai-body">
-        <div class="ai-title">Ananya Sharma — 6 days silent post-surgery</div>
-        <div class="ai-sub">Post-surgical rotator cuff (Week 8). 3 consecutive missed sessions. Platform outreach ×3 — no reply. Dropout risk is high; post-surgical window matters clinically.</div>
-        <div class="ai-recommended">Direct phone call today · Document outreach attempt for audit trail</div>
-        <div class="ai-dismissed">🔒 Platform outreach logged: 3 attempts, all unread</div>
-      </div>
-      <div class="ai-right">
-        <div class="ai-time">6 days</div>
-        <button class="ai-action coral" onclick="showToast('📞 Calling Ananya...')">Call Now</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TIER 3: MONITOR -->
-  <div class="alert-tier">
-    <div class="alert-tier-header ath-monitor">🟡 Monitor — Watch this week</div>
-
-    <div class="alert-item" style="border-left:3px solid var(--amber)">
-      <div class="ai-icon amber">📉</div>
-      <div class="ai-body">
-        <div class="ai-title">Vikram Nair — Compliance declining, travel pattern</div>
-        <div class="ai-sub">Knee OA (Week 6). Adherence: 72% → 45% over 3 weeks. Travel-related — low clinical risk but early drop-off at Week 6 predicts abandonment. Pain stable at 3.4/10.</div>
-        <div class="ai-recommended">Brief check-in call · Offer travel-adapted protocol · No clinical urgency</div>
-      </div>
-      <div class="ai-right">
-        <div class="ai-time">Yesterday</div>
-        <button class="ai-action amber" onclick="showToast('📅 Check-in scheduled')">Check In</button>
-      </div>
-    </div>
-
-    <div class="alert-item" style="border-left:3px solid var(--amber)">
-      <div class="ai-icon amber">🌙</div>
-      <div class="ai-body">
-        <div class="ai-title">Preethi Menon — Night pain worsening, cervical</div>
-        <div class="ai-sub">Cervical spondylosis (Week 10). Night pain increasing alongside screen time. No neurological signs reported. Likely postural deterioration.</div>
-        <div class="ai-recommended">Review ergonomics + pillow protocol · Non-urgent, monitor 1 week before escalating</div>
-      </div>
-      <div class="ai-right">
-        <div class="ai-time">3 days ago</div>
-        <button class="ai-action amber">Review</button>
-      </div>
-    </div>
+  <div id="triageQueueContainer">
+    <div class="empty-state"><div class="es-icon" style="animation:spin 1s linear infinite">⏳</div><div class="es-sub">Loading triage queue…</div></div>
   </div>
 </div>
 
@@ -1128,89 +1062,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   <div class="ph">
     <div class="ph-left">
       <h1 class="ph-title">Practice Performance</h1>
-      <p class="ph-sub">18 active patients · May 2025</p>
+      <p class="ph-sub" id="perf-sub">Loading…</p>
     </div>
   </div>
-
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-num">74%</div>
-      <div class="kpi-lbl">Avg quality-adjusted adherence</div>
-      <div class="kpi-change change-up">↑ 4% vs last month</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-num">3.8</div>
-      <div class="kpi-lbl">Avg pain score (0–10)</div>
-      <div class="kpi-change change-up">↓ 0.6 (improving)</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-num">11%</div>
-      <div class="kpi-lbl">Dropout rate (rolling 90d)</div>
-      <div class="kpi-change change-up">↓ 3% improvement</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-num">89%</div>
-      <div class="kpi-lbl">Outcome satisfaction</div>
-      <div class="kpi-change change-up">↑ 7% vs last quarter</div>
-    </div>
-  </div>
-
-  <div class="card gap">
-    <div class="card-title">Patient Cohort — Outcome-First View</div>
-    <table class="cohort-table">
-      <thead>
-        <tr>
-          <th>Patient</th>
-          <th>Condition</th>
-          <th>Pain Δ</th>
-          <th>Functional Gain</th>
-          <th>Archetype</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr onclick="openPatient('rohan')">
-          <td><div class="ct-name"><div class="ct-av pt-av-coral" style="background:var(--coral-light);color:var(--coral)">RM</div>Rohan Mehra</div></td>
-          <td>L4-L5 Herniation</td>
-          <td style="color:var(--coral)">8.1 → 6.2 ↑</td>
-          <td>68%</td>
-          <td>⚡ Overdoer</td>
-          <td><span class="severity-ladder sev-emergency" style="font-size:10px;padding:2px 8px">🆘 Emergency</span></td>
-        </tr>
-        <tr>
-          <td><div class="ct-name"><div class="ct-av" style="background:var(--coral-light);color:var(--coral)">AS</div>Ananya Sharma</div></td>
-          <td>Rotator cuff (post-sx)</td>
-          <td style="color:var(--amber)">—</td>
-          <td>Unknown</td>
-          <td>😶 Silent</td>
-          <td><span class="severity-ladder sev-urgent" style="font-size:10px;padding:2px 8px">🔴 Urgent</span></td>
-        </tr>
-        <tr>
-          <td><div class="ct-name"><div class="ct-av" style="background:var(--amber-light);color:var(--amber)">VN</div>Vikram Nair</div></td>
-          <td>Knee OA (Grade II)</td>
-          <td style="color:var(--green)">5.1 → 3.4</td>
-          <td>55%</td>
-          <td>✈ Traveller</td>
-          <td><span class="severity-ladder sev-moderate" style="font-size:10px;padding:2px 8px">🟡 Monitor</span></td>
-        </tr>
-        <tr>
-          <td><div class="ct-name"><div class="ct-av" style="background:var(--green-light);color:var(--green)">SA</div>Siddharth Arora</div></td>
-          <td>Post-ACL</td>
-          <td style="color:var(--green)">6.4 → 1.2</td>
-          <td>91%</td>
-          <td>🏆 Compliant</td>
-          <td><span class="severity-ladder sev-monitor" style="font-size:10px;padding:2px 8px">✅ On Track</span></td>
-        </tr>
-        <tr>
-          <td><div class="ct-name"><div class="ct-av" style="background:var(--green-light);color:var(--green)">NR</div>Neha Rao</div></td>
-          <td>Plantar fasciitis</td>
-          <td style="color:var(--green)">6.4 → 2.1</td>
-          <td>72%</td>
-          <td>🏆 Compliant</td>
-          <td><span class="severity-ladder sev-monitor" style="font-size:10px;padding:2px 8px">✅ On Track</span></td>
-        </tr>
-      </tbody>
-    </table>
+  <div id="performanceContainer">
+    <div class="empty-state"><div class="es-icon" style="animation:spin 1s linear infinite">⏳</div><div class="es-sub">Loading performance data…</div></div>
   </div>
 </div>
 
@@ -1224,11 +1080,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
     <div class="modal-sub">Auto-summarised and added to the patient's audit trail</div>
     <div class="form-group">
       <label class="form-label">Patient</label>
-      <select class="form-select">
-        <option>Rohan Mehra — Week 14 Assessment</option>
-        <option>Ananya Sharma</option>
-        <option>Vikram Nair</option>
-        <option>Other patient…</option>
+      <select class="form-select" id="modal-patient-select">
+        <option value="">Loading patients…</option>
       </select>
     </div>
     <div class="form-group">
@@ -1507,15 +1360,162 @@ function updateLiveCounts(rows) {
     return acc;
   }, { emergency: 0, urgent: 0, 'needs-attention': 0, 'on-track': 0 });
   const total = rows.length;
-  document.querySelector('#page-patients .ph-sub').textContent = `${total} active · ${counts.emergency} emergency · ${counts.urgent} urgent · ${counts['needs-attention']} monitoring`;
-  const allBadge = document.querySelector('#nav-patients .nav-badge');
-  if (allBadge) allBadge.textContent = total;
-  const triage = document.querySelectorAll('.ts-num');
-  if (triage.length >= 3) {
-    triage[0].textContent = counts.emergency;
-    triage[1].textContent = counts.urgent;
-    triage[2].textContent = counts['needs-attention'];
+  const flagged = counts.emergency + counts.urgent + counts['needs-attention'];
+
+  // Patients page subtitle
+  const sub = document.getElementById('patients-sub');
+  if (sub) sub.textContent = `${total} active · ${counts.emergency} emergency · ${counts.urgent} urgent · ${counts['needs-attention']} monitoring`;
+
+  // Sidebar triage summary
+  const el = id => document.getElementById(id);
+  if (el('ts-emergency')) el('ts-emergency').textContent = counts.emergency;
+  if (el('ts-urgent')) el('ts-urgent').textContent = counts.urgent;
+  if (el('ts-monitor')) el('ts-monitor').textContent = counts['needs-attention'];
+
+  // Nav badges
+  if (el('nav-badge-all')) el('nav-badge-all').textContent = total;
+  if (el('nav-badge-triage')) el('nav-badge-triage').textContent = flagged;
+  if (el('nav-badge-emergency')) el('nav-badge-emergency').textContent = counts.emergency;
+  if (el('nav-badge-urgent')) el('nav-badge-urgent').textContent = counts.urgent;
+  if (el('nav-badge-monitor')) el('nav-badge-monitor').textContent = counts['needs-attention'];
+  if (el('nav-badge-ontrack')) el('nav-badge-ontrack').textContent = counts['on-track'];
+
+  // Filter chip counts
+  if (el('fc-all')) el('fc-all').textContent = total;
+  if (el('fc-emergency')) el('fc-emergency').textContent = counts.emergency;
+  if (el('fc-urgent')) el('fc-urgent').textContent = counts.urgent;
+  if (el('fc-monitor')) el('fc-monitor').textContent = counts['needs-attention'];
+  if (el('fc-ontrack')) el('fc-ontrack').textContent = counts['on-track'];
+
+  // Sidebar footer
+  if (el('sf-emergency')) el('sf-emergency').textContent = counts.emergency;
+  if (el('sf-sessions')) el('sf-sessions').textContent = total;
+
+  // Render triage queue
+  renderTriageQueue(rows, counts, flagged);
+  // Render performance page
+  renderPerformancePage(rows, counts, total);
+  // Populate upload modal dropdown
+  populateModalDropdown(rows);
+}
+
+function renderTriageQueue(rows, counts, flagged) {
+  const container = document.getElementById('triageQueueContainer');
+  const sub = document.getElementById('triage-sub');
+  if (!container) return;
+
+  const flaggedRows = rows.filter(r => normalizeStatus(r) !== 'on-track');
+  if (sub) sub.textContent = `${flaggedRows.length} cases · ${counts.emergency} emergency requiring action today`;
+
+  if (!flaggedRows.length) {
+    container.innerHTML = `<div class="empty-state"><div class="es-icon">✅</div><div class="es-title">All clear</div><div class="es-sub">No patients currently require urgent attention.</div></div>`;
+    return;
   }
+
+  const tiers = [
+    { key: 'emergency', label: '🆘 Emergency — Act today', headerClass: 'ath-emergency', btnClass: 'emergency', btnLabel: '📞 Call Now', borderColor: 'var(--coral)' },
+    { key: 'urgent', label: '🔴 Urgent — Act this week', headerClass: 'ath-urgent', btnClass: 'coral', btnLabel: 'Call Now', borderColor: 'var(--coral)' },
+    { key: 'needs-attention', label: '🟡 Monitor — Watch this week', headerClass: 'ath-monitor', btnClass: 'amber', btnLabel: 'Check In', borderColor: 'var(--amber)' },
+  ];
+
+  let html = '';
+  tiers.forEach(tier => {
+    const tierRows = flaggedRows.filter(r => normalizeStatus(r) === tier.key);
+    if (!tierRows.length) return;
+    html += `<div class="alert-tier"><div class="alert-tier-header ${tier.headerClass}">${tier.label}</div>`;
+    tierRows.forEach(row => {
+      const name = row.full_name || row.name || [row.first_name, row.last_name].filter(Boolean).join(' ') || 'Unknown Patient';
+      const condition = row.primary_concern || row.condition || row.diagnosis || '';
+      const week = row.current_week || row.week || '';
+      const note = row.clinical_snapshot || row.note || row.medical_history || 'Flagged for review.';
+      const icon = tier.key === 'emergency' ? '🆘' : tier.key === 'urgent' ? '📵' : '📉';
+      const weekStr = week ? ` · Week ${week}` : '';
+      html += `
+        <div class="alert-item" onclick="openPatient('${row.id || ''}')" style="border-left:3px solid ${tier.borderColor}">
+          <div class="ai-icon ${tier.btnClass}">${icon}</div>
+          <div class="ai-body">
+            <div class="ai-title">${name}${condition ? ' — ' + condition : ''}${weekStr}</div>
+            <div class="ai-sub">${note}</div>
+            <div class="ai-recommended">${row.recommended_action || 'Review and contact patient'}</div>
+          </div>
+          <div class="ai-right">
+            <div class="ai-time">${row.last_active ? 'Active recently' : 'Pending'}</div>
+            <button class="ai-action ${tier.btnClass}" onclick="event.stopPropagation();showToast('📞 Calling ${name}...')">${tier.btnLabel}</button>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderPerformancePage(rows, counts, total) {
+  const container = document.getElementById('performanceContainer');
+  const sub = document.getElementById('perf-sub');
+  if (!container) return;
+
+  if (sub) sub.textContent = `${total} active patients`;
+
+  if (!rows.length) {
+    container.innerHTML = `<div class="empty-state"><div class="es-icon">📊</div><div class="es-title">No data yet</div><div class="es-sub">Add patients to see performance metrics.</div></div>`;
+    return;
+  }
+
+  // Compute live KPIs from real data
+  const adherenceVals = rows.map(r => parseFloat(r.adherence_rate || r.compliance_rate || r.adherence || 0)).filter(v => v > 0);
+  const painVals = rows.map(r => parseFloat(r.current_pain || r.pain_score || 0)).filter(v => v > 0);
+  const avgAdherence = adherenceVals.length ? Math.round(adherenceVals.reduce((a,b)=>a+b,0)/adherenceVals.length) + '%' : '—';
+  const avgPain = painVals.length ? (painVals.reduce((a,b)=>a+b,0)/painVals.length).toFixed(1) : '—';
+  const dropoutRate = total ? Math.round((counts.urgent / total) * 100) + '%' : '—';
+
+  const cohortRows = rows.map(row => {
+    const name = row.full_name || row.name || [row.first_name, row.last_name].filter(Boolean).join(' ') || 'Unknown';
+    const status = normalizeStatus(row);
+    const severityClass = status === 'emergency' ? 'sev-emergency' : status === 'urgent' ? 'sev-urgent' : status === 'needs-attention' ? 'sev-moderate' : 'sev-monitor';
+    const badgeLabel = statusLabel(status);
+    const statusEmoji = status === 'emergency' ? '🆘' : status === 'urgent' ? '🔴' : status === 'needs-attention' ? '🟡' : '✅';
+    const condition = row.primary_concern || row.condition || row.diagnosis || '—';
+    const avatarBg = status === 'emergency' || status === 'urgent' ? 'background:var(--coral-light);color:var(--coral)' : status === 'needs-attention' ? 'background:var(--amber-light);color:var(--amber)' : 'background:var(--green-light);color:var(--green)';
+    const adherence = row.adherence_rate || row.compliance_rate || row.adherence;
+    const pain = row.current_pain || row.pain_score;
+    return `<tr onclick="openPatient('${row.id || ''}')">
+      <td><div class="ct-name"><div class="ct-av" style="${avatarBg}">${initialsFor(name)}</div>${name}</div></td>
+      <td>${condition}</td>
+      <td>${pain ? pain + '/10' : '—'}</td>
+      <td>${adherence ? adherence + '%' : '—'}</td>
+      <td>—</td>
+      <td><span class="severity-ladder ${severityClass}" style="font-size:10px;padding:2px 8px">${statusEmoji} ${badgeLabel}</span></td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-num">${avgAdherence}</div><div class="kpi-lbl">Avg adherence</div></div>
+      <div class="kpi-card"><div class="kpi-num">${avgPain}</div><div class="kpi-lbl">Avg pain score (0–10)</div></div>
+      <div class="kpi-card"><div class="kpi-num">${total}</div><div class="kpi-lbl">Active patients</div></div>
+      <div class="kpi-card"><div class="kpi-num">${counts.emergency}</div><div class="kpi-lbl" style="color:var(--coral)">Emergency cases</div></div>
+    </div>
+    <div class="card gap">
+      <div class="card-title">Patient Cohort — Outcome-First View</div>
+      <table class="cohort-table">
+        <thead>
+          <tr><th>Patient</th><th>Condition</th><th>Pain</th><th>Adherence</th><th>Archetype</th><th>Status</th></tr>
+        </thead>
+        <tbody>${cohortRows}</tbody>
+      </table>
+    </div>`;
+}
+
+function populateModalDropdown(rows) {
+  const sel = document.getElementById('modal-patient-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select patient…</option>' +
+    rows.map(row => {
+      const name = row.full_name || row.name || [row.first_name, row.last_name].filter(Boolean).join(' ') || 'Unknown Patient';
+      const week = row.current_week ? ` — Week ${row.current_week}` : '';
+      return `<option value="${row.id || ''}">${name}${week}</option>`;
+    }).join('') +
+    '<option value="other">Other patient…</option>';
 }
 
 function showEmptyPatientState(msg) {
@@ -1528,29 +1528,48 @@ function showEmptyPatientState(msg) {
 }
 
 async function loadLivePatients() {
-  if (!supabaseClient) {
-    showEmptyPatientState('Supabase is not configured. Connect your database to load patients.');
-    return;
-  }
   const grid = document.getElementById('patientGrid');
   grid.innerHTML = '<div class="empty-state"><div class="es-icon" style="animation:spin 1s linear infinite">⏳</div><div class="es-sub">Loading patients…</div></div>';
-  const { data, error } = await supabaseClient
-    .from('patients')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) {
-    console.error('Supabase patients load failed', error);
-    showEmptyPatientState('Could not load patients: ' + error.message);
-    return;
+
+  // Try Supabase first
+  if (supabaseClient) {
+    const { data, error } = await supabaseClient
+      .from('patients')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (!error && data && data.length) {
+      grid.innerHTML = data.map(patientCardHTML).join('');
+      updateLiveCounts(data);
+      renderFilter();
+      showToast('Loaded ' + data.length + ' patients.');
+      return;
+    }
+    if (error) console.warn('Supabase patients load failed', error);
   }
-  if (!data || !data.length) {
-    showEmptyPatientState('No patients found in your Stance programme yet.');
-    return;
+
+  // Fallback: try the Render backend
+  try {
+    const resp = await fetch('https://stance-health-backend.onrender.com/api/patients', {
+      headers: currentDoctorUser ? { 'Authorization': 'Bearer ' + (await supabaseClient?.auth?.getSession())?.data?.session?.access_token } : {}
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const patients = Array.isArray(data) ? data : (data.patients || data.data || []);
+      if (patients.length) {
+        grid.innerHTML = patients.map(patientCardHTML).join('');
+        updateLiveCounts(patients);
+        renderFilter();
+        showToast('Loaded ' + patients.length + ' patients from backend.');
+        return;
+      }
+    }
+  } catch(e) {
+    console.warn('Render backend fetch failed', e);
   }
-  grid.innerHTML = data.map(patientCardHTML).join('');
-  updateLiveCounts(data);
-  renderFilter();
-  showToast('Loaded ' + data.length + ' patients.');
+
+  // Nothing loaded — show empty state and clear all dynamic sections
+  showEmptyPatientState('No patients found. Add patients through the Stance app to see them here.');
+  updateLiveCounts([]);
 }
 
 function switchTab(el, id) {
