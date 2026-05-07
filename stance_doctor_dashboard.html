@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stance Health — Doctor Portal v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F8F6F2;--bg2:#F0EDE7;--surface:#FFFFFF;--surface2:#F5F2ED;
+  --border:#E4DDD4;--border2:#C5BAB0;
+  --green:#1A6645;--green-mid:#2E9465;--green-light:#D6EDE2;--green-glow:rgba(46,148,101,.12);
+  --amber:#A85D00;--amber-light:#FEF0D8;
+  --coral:#B83025;--coral-light:#FDECEA;
+  --blue:#1E4A8C;--blue-light:#E6EEF8;
+  --purple:#5B3A8E;--purple-light:#EDE8F7;
+  --text:#1A1816;--text2:#52483E;--text3:#96887C;
+  --lora:'Lora',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;
+  --r:14px;--r-sm:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);
+  --shadow-md:0 2px 8px rgba(0,0,0,.09),0 8px 28px rgba(0,0,0,.06);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* LAYOUT */
+.shell{display:grid;grid-template-columns:260px 1fr;grid-template-rows:56px 1fr;min-height:100vh}
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo{font-family:var(--lora);font-size:17px;font-weight:600;color:var(--green);font-style:italic;letter-spacing:-.02em}
+.logo-divider{width:1px;height:18px;background:var(--border);margin:0 4px}
+.logo-role{font-size:11px;color:var(--text3);font-weight:400}
+
+/* FOCUS MODE BANNER */
+.focus-banner{background:var(--green);color:white;padding:6px 1.5rem;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:space-between;display:none}
+.focus-banner.active{display:flex}
+
+.tb-right{display:flex;align-items:center;gap:10px}
+.auth-box{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.auth-input{width:145px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;color:var(--text);font-family:var(--sans);outline:none}
+.auth-input:focus{border-color:var(--green-mid);background:var(--surface)}
+.auth-btn{background:var(--green);color:white;border:none;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:500;font-family:var(--sans);cursor:pointer}
+.auth-btn.secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.auth-status{font-size:11px;color:var(--text3);min-width:82px;text-align:right}
+.doc-chip{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 6px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);cursor:pointer}
+.doc-av{width:26px;height:26px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--green)}
+.doc-name-sm{font-size:12px;color:var(--text2);font-weight:500}
+.focus-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--sans);transition:.15s}
+.focus-btn:hover{background:var(--green-light);color:var(--green);border-color:#A8D8C0}
+.focus-btn.active{background:var(--green);color:white;border-color:var(--green)}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1.25rem 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;display:flex;flex-direction:column}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* CRITICAL SIGNAL COUNTER — replaces alert fatigue soup */
+.triage-summary{margin:0 1rem 1rem;padding:.75rem 1rem;background:linear-gradient(135deg,#1A6645,#2E9465);border-radius:12px;color:white}
+.ts-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.75;margin-bottom:6px}
+.ts-row{display:flex;gap:8px}
+.ts-stat{flex:1;text-align:center;background:rgba(255,255,255,.12);border-radius:8px;padding:5px 4px}
+.ts-num{font-family:var(--lora);font-size:18px;font-weight:600;line-height:1}
+.ts-lbl{font-size:9px;opacity:.8;margin-top:1px}
+.ts-stat.emergency .ts-num{color:#FFB3AE}
+
+.sidebar-search{padding:0 1rem .75rem}
+.search-wrap{position:relative}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3)}
+.search-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:7px 10px 7px 30px;font-size:12px;color:var(--text);font-family:var(--sans);outline:none;transition:.18s}
+.search-input:focus{border-color:var(--green-mid);background:var(--surface)}
+
+.nav-section{padding:0 .75rem;margin-bottom:1rem}
+.nav-label-sm{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;padding:0 .75rem;margin-bottom:.4rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;color:var(--text2);font-size:13px;cursor:pointer;transition:.15s;border:none;background:none;width:100%;text-align:left;font-family:var(--sans)}
+.nav-item:hover{background:var(--bg2);color:var(--text)}
+.nav-item.active{background:var(--green-light);color:var(--green);font-weight:500}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600}
+.badge-coral{background:var(--coral-light);color:var(--coral)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-green{background:var(--green-light);color:var(--green)}
+
+.sidebar-footer{margin-top:auto;padding:1rem 1.25rem;border-top:1px solid var(--border)}
+.sf-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.sf-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sf-stat{background:var(--bg2);border-radius:8px;padding:.5rem .6rem;text-align:center}
+.sf-num{font-size:16px;font-weight:600;color:var(--text);font-family:var(--lora)}
+.sf-lbl{font-size:10px;color:var(--text3);margin-top:1px}
+
+/* MAIN */
+.main{padding:0;overflow-y:auto;background:var(--bg);max-height:calc(100vh - 56px)}
+.page{display:none;padding:2rem;animation:fadeUp .25s ease}.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;transition:.18s;font-family:var(--sans);border:none;white-space:nowrap}
+.btn-primary{background:var(--green);color:white}
+.btn-primary:hover{background:var(--green-mid)}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text)}
+.btn-coral{background:var(--coral-light);color:var(--coral);border:1px solid #F0C0BC}
+.btn-coral:hover{background:#FADBDB}
+.btn-emergency{background:var(--coral);color:white;font-weight:600}
+.btn-emergency:hover{background:#9A2520}
+.btn-white{background:white;color:var(--green);font-size:12px;padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:500;font-family:var(--sans);display:inline-flex;align-items:center;gap:5px;transition:.18s}
+.btn-white:hover{background:#f0f0f0}
+.btn-outline-w{background:transparent;color:white;font-size:12px;padding:7px 14px;border-radius:8px;border:1.5px solid rgba(255,255,255,.35);cursor:pointer;font-weight:500;font-family:var(--sans);display:inline-flex;align-items:center;gap:5px;transition:.18s}
+.btn-outline-w:hover{background:rgba(255,255,255,.1)}
+
+/* Page header */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.75rem;gap:16px}
+.ph-title{font-family:var(--lora);font-size:24px;font-weight:600;color:var(--text);font-style:italic;line-height:1.1}
+.ph-sub{font-size:13px;color:var(--text3);margin-top:4px}
+.ph-actions{display:flex;gap:8px;flex-shrink:0;margin-top:2px}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;box-shadow:var(--shadow)}
+.card-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:.9rem}
+.card.l-green{border-left:3px solid var(--green-mid)}
+.card.l-amber{border-left:3px solid var(--amber)}
+.card.l-coral{border-left:3px solid var(--coral)}
+
+/* Grid utils */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.gap{margin-bottom:14px}
+.gap-sm{margin-bottom:8px}
+
+/* ═══ SEVERITY LADDER (replaces binary flagged/not-flagged) ═══ */
+.severity-ladder{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px}
+.sev-monitor{background:#F0EDE7;color:#96887C}
+.sev-moderate{background:var(--amber-light);color:var(--amber)}
+.sev-urgent{background:var(--coral-light);color:var(--coral)}
+.sev-emergency{background:var(--coral);color:white;animation:pulse-sev 2s infinite}
+@keyframes pulse-sev{0%,100%{opacity:1}50%{opacity:.8}}
+
+/* ═══ PATIENT CARDS ═══ */
+.filter-row{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center}
+.filter-chip{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:.15s}
+.filter-chip.active{background:var(--text);color:var(--surface);border-color:transparent}
+.filter-chip:hover:not(.active){background:var(--bg2)}
+.filter-count{margin-left:4px;font-size:10px;opacity:.7}
+.patient-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+
+.pt-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;cursor:pointer;transition:.2s;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.pt-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.pt-card.on-track::before{background:var(--green-mid)}
+.pt-card.needs-attention::before{background:var(--amber)}
+.pt-card.urgent::before{background:var(--coral)}
+.pt-card.emergency::before{background:var(--coral);box-shadow:0 0 8px rgba(184,48,37,.4)}
+.pt-card:hover{box-shadow:var(--shadow-md);border-color:var(--border2);transform:translateY(-1px)}
+
+.pt-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.pt-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--lora);font-size:14px;font-style:italic;flex-shrink:0;font-weight:500}
+.pt-av-green{background:var(--green-light);color:var(--green)}
+.pt-av-amber{background:var(--amber-light);color:var(--amber)}
+.pt-av-coral{background:var(--coral-light);color:var(--coral)}
+.pt-av-blue{background:var(--blue-light);color:var(--blue)}
+.pt-info{flex:1;margin:0 10px}
+.pt-name{font-family:var(--lora);font-size:15px;font-weight:500;color:var(--text);font-style:italic;line-height:1.2}
+.pt-meta{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── CLINICAL SNAPSHOT — the key new element ── */
+.clinical-snapshot{background:var(--bg2);border-radius:9px;padding:.65rem .8rem;margin-bottom:10px}
+.cs-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:5px}
+.cs-items{display:flex;flex-direction:column;gap:3px}
+.cs-item{font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:baseline;line-height:1.4}
+.cs-item.critical{color:var(--coral);font-weight:500}
+.cs-item.warn{color:var(--amber)}
+
+/* ── RECOMMENDED ACTION ── */
+.rec-action{background:var(--blue-light);border:1px solid #C0D4F0;border-radius:9px;padding:.6rem .8rem;margin-bottom:10px}
+.ra-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);margin-bottom:4px}
+.ra-text{font-size:12px;color:var(--blue);font-weight:500;line-height:1.4}
+
+.pt-footer{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3)}
+.pt-last{display:flex;align-items:center;gap:4px}
+
+/* ── REPORTING RELIABILITY ── */
+.reliability-badge{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:500}
+.rel-high{color:var(--green)}
+.rel-medium{color:var(--amber)}
+.rel-low{color:var(--coral)}
+
+/* ═══ PROFILE ═══ */
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);cursor:pointer;padding:6px 0;margin-bottom:1rem;transition:.15s;border:none;background:none;font-family:var(--sans)}
+.back-btn:hover{color:var(--text)}
+
+.profile-hero{background:linear-gradient(135deg,#1A6645,#2E9465);border-radius:16px;padding:1.5rem;color:white;margin-bottom:14px;position:relative;overflow:hidden}
+.profile-hero::after{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.05)}
+.hero-inner{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.hero-av{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:var(--lora);font-size:19px;font-style:italic;flex-shrink:0;border:2px solid rgba(255,255,255,.3)}
+.hero-text{flex:1}
+.hero-name{font-family:var(--lora);font-size:21px;font-weight:600;font-style:italic;line-height:1.1;margin-bottom:3px}
+.hero-sub{font-size:12px;opacity:.8;margin-bottom:8px}
+.hero-tags{display:flex;gap:6px;flex-wrap:wrap}
+.hero-tag{font-size:11px;padding:3px 9px;border-radius:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2)}
+.hero-right{text-align:right;flex-shrink:0}
+.hero-week{font-family:var(--lora);font-size:28px;font-weight:600;line-height:1}
+.hero-week-lbl{font-size:11px;opacity:.75}
+.hero-actions{display:flex;gap:6px;margin-top:12px;position:relative;z-index:1;flex-wrap:wrap}
+
+/* ── CRITICAL ACTION PANEL (replaces vague flag banners) ── */
+.critical-action-panel{border:2px solid var(--coral);border-radius:var(--r);padding:1.25rem;background:var(--coral-light);margin-bottom:14px}
+.cap-header{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.cap-sev{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:white;background:var(--coral);padding:3px 9px;border-radius:20px}
+.cap-title{font-size:14px;font-weight:600;color:var(--coral)}
+.cap-snapshot{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:.75rem}
+.cap-snapshot strong{color:var(--text);display:block;margin-bottom:2px}
+.cap-recommended{background:var(--surface);border-radius:9px;padding:.75rem 1rem;margin-bottom:.75rem;border:1px solid #F0C0BC}
+.cap-rec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--coral);margin-bottom:6px}
+.cap-rec-steps{display:flex;flex-direction:column;gap:4px}
+.cap-rec-step{font-size:13px;color:var(--text);display:flex;align-items:baseline;gap:8px}
+.cap-rec-step::before{content:'→';color:var(--coral);font-weight:700;flex-shrink:0}
+.cap-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── AUDIT TRAIL ── */
+.audit-trail{background:var(--bg2);border-radius:10px;padding:1rem;border:1px solid var(--border)}
+.at-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.at-label-badge{font-size:9px;padding:2px 7px;border-radius:5px;background:var(--green-light);color:var(--green);font-weight:600;text-transform:none;letter-spacing:0}
+.at-item{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.at-item:last-child{border-bottom:none;padding-bottom:0}
+.at-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;margin-top:5px}
+.at-dot.done{background:var(--green-mid)}
+.at-dot.urgent{background:var(--coral)}
+.at-dot.pending{background:var(--amber)}
+.at-content{flex:1}
+.at-action{font-size:12px;font-weight:500;color:var(--text)}
+.at-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.at-time{font-size:11px;color:var(--text3);flex-shrink:0;white-space:nowrap}
+
+/* Profile tabs */
+.tab-row{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:1.25rem}
+.tab{padding:.65rem 1rem;font-size:13px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s;border-top:none;border-left:none;border-right:none;background:none;font-family:var(--sans)}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--green);border-bottom-color:var(--green);font-weight:500}
+.tab-content{display:none}.tab-content.active{display:block;animation:fadeUp .2s ease}
+
+/* Info blocks */
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.info-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem}
+.ib-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.ib-value{font-size:13px;color:var(--text);line-height:1.5}
+.ib-value strong{display:block;font-size:14px;margin-bottom:2px}
+
+/* ── LONGITUDINAL NARRATIVE TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:14px;padding:0 0 16px 0;position:relative}
+.tl-item:not(:last-child)::after{content:'';position:absolute;left:11px;top:22px;bottom:0;width:2px;background:var(--border)}
+.tl-dot{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:1;position:relative}
+.tl-dot.green{background:var(--green-light);color:var(--green)}
+.tl-dot.amber{background:var(--amber-light);color:var(--amber)}
+.tl-dot.coral{background:var(--coral-light);color:var(--coral)}
+.tl-dot.blue{background:var(--blue-light);color:var(--blue)}
+.tl-body{flex:1;padding-top:2px}
+.tl-week{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px}
+.tl-event{font-size:13px;color:var(--text);font-weight:500;line-height:1.4}
+.tl-detail{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.5}
+
+/* ── SYMPTOM TRAJECTORY ── */
+.symptom-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.sym-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem}
+.sym-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.sym-value{font-size:22px;font-weight:600;font-family:var(--lora);line-height:1;color:var(--text)}
+.sym-context{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4}
+.sym-trend{font-size:11px;font-weight:600;margin-top:4px;display:flex;align-items:center;gap:3px}
+.trend-worse{color:var(--coral)}
+.trend-better{color:var(--green)}
+.trend-stable{color:var(--text3)}
+
+/* Behaviour archetype */
+.archetype-card{background:var(--purple-light);border:1px solid #D0C5EC;border-radius:10px;padding:1rem}
+.arch-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);margin-bottom:4px}
+.arch-name{font-size:15px;font-weight:600;color:var(--purple);margin-bottom:4px}
+.arch-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.arch-implication{font-size:12px;color:var(--purple);font-weight:500;margin-top:6px;padding:5px 8px;background:rgba(91,58,142,.08);border-radius:7px}
+
+/* Progress bars */
+.prog-row{margin-bottom:12px}
+.prog-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.prog-name{font-size:13px;color:var(--text)}
+.prog-pct{font-size:12px;font-weight:600;color:var(--text2)}
+.prog-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.fill-green{background:var(--green-mid)}
+.fill-amber{background:var(--amber)}
+.fill-coral{background:var(--coral)}
+
+/* Chart */
+.chart-wrap{position:relative;height:140px;display:flex;align-items:flex-end;gap:6px;padding:10px 0 0}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-stack{width:100%;border-radius:4px 4px 0 0;transition:height .6s ease;cursor:pointer;min-height:4px}
+.bar-lbl{font-size:9px;color:var(--text3)}
+
+/* Exercise table */
+.ex-table{width:100%;border-collapse:collapse}
+.ex-table th{text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;border-bottom:1px solid var(--border)}
+.ex-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle}
+.ex-table tr:last-child td{border-bottom:none}
+.ex-table tr:hover td{background:var(--bg2)}
+.ex-trend{font-size:11px;padding:2px 7px;border-radius:5px;font-weight:500}
+.trend-up{background:var(--green-light);color:var(--green)}
+.trend-flat{background:var(--bg2);color:var(--text3)}
+.trend-down{background:var(--coral-light);color:var(--coral)}
+
+/* Reports — insight-centric */
+.report-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;transition:.15s}
+.report-item:hover{box-shadow:var(--shadow)}
+.ri-icon{width:36px;height:36px;border-radius:8px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ri-body{flex:1}
+.ri-name{font-size:13px;color:var(--text);font-weight:500;line-height:1.3}
+.ri-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.ri-insight{font-size:12px;color:var(--blue);margin-top:5px;background:var(--blue-light);padding:4px 8px;border-radius:6px;line-height:1.4}
+.ri-actions{display:flex;gap:6px;flex-shrink:0}
+.ri-btn{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--sans);transition:.15s}
+.ri-btn:hover{border-color:var(--border2);color:var(--text)}
+
+/* Clinical notes */
+.note-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:1rem;margin-bottom:8px}
+.note-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.note-doc{font-size:12px;font-weight:500;color:var(--green)}
+.note-date{font-size:11px;color:var(--text3)}
+.note-text{font-size:13px;color:var(--text2);line-height:1.6}
+.note-tags{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap}
+.note-tag{font-size:10px;padding:2px 7px;border-radius:5px;background:var(--bg2);color:var(--text3);font-weight:500}
+.note-audit{font-size:11px;color:var(--text3);margin-top:6px;padding:4px 8px;background:var(--bg2);border-radius:6px;display:flex;align-items:center;gap:4px}
+
+.note-composer{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:14px}
+.note-textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:.75rem;font-size:13px;font-family:var(--sans);color:var(--text);background:var(--bg2);resize:vertical;min-height:80px;outline:none;transition:.18s}
+.note-textarea:focus{border-color:var(--green-mid);background:var(--surface)}
+.note-footer-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px}
+.note-type-chips{display:flex;gap:6px;flex-wrap:wrap}
+.ntc{font-size:11px;padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:.15s;font-family:var(--sans)}
+.ntc.sel{background:var(--green-light);color:var(--green);border-color:#A8D8C0}
+
+/* ═══ ALERTS — with severity ladder, NO alert fatigue ═══ */
+.alert-tier{margin-bottom:1.5rem}
+.alert-tier-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.4rem .6rem;border-radius:6px;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px}
+.ath-emergency{background:var(--coral);color:white}
+.ath-urgent{background:var(--coral-light);color:var(--coral)}
+.ath-monitor{background:var(--amber-light);color:var(--amber)}
+
+.alert-item{display:flex;align-items:flex-start;gap:14px;padding:1rem 1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;cursor:pointer;transition:.18s;box-shadow:var(--shadow)}
+.alert-item:hover{box-shadow:var(--shadow-md);border-color:var(--border2)}
+.ai-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ai-icon.coral{background:var(--coral-light)}
+.ai-icon.amber{background:var(--amber-light)}
+.ai-icon.emergency{background:var(--coral);font-size:16px}
+.ai-body{flex:1}
+.ai-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ai-sub{font-size:12px;color:var(--text3);line-height:1.5}
+.ai-recommended{font-size:12px;color:var(--blue);margin-top:5px;display:flex;align-items:baseline;gap:4px}
+.ai-recommended::before{content:'→';font-weight:700}
+.ai-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.ai-time{font-size:11px;color:var(--text3)}
+.ai-action{font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;background:var(--green-light);color:var(--green);cursor:pointer;border:none;font-family:var(--sans);transition:.15s}
+.ai-action:hover{background:#C0E8D0}
+.ai-action.coral{background:var(--coral-light);color:var(--coral)}
+.ai-action.amber{background:var(--amber-light);color:var(--amber)}
+.ai-action.emergency{background:var(--coral);color:white}
+.ai-action.emergency:hover{background:#9A2520}
+.ai-dismissed{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px;margin-top:2px}
+
+/* Upload modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;padding:1.75rem;width:480px;max-width:90vw;box-shadow:var(--shadow-md)}
+.modal-title{font-family:var(--lora);font-size:20px;font-weight:600;font-style:italic;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--text3);margin-bottom:1.25rem}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-size:13px;font-family:var(--sans);color:var(--text);background:var(--bg2);outline:none;transition:.18s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--green-mid);background:var(--surface)}
+.form-textarea{min-height:70px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:1.5rem;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+.upload-zone:hover{border-color:var(--green-mid);background:var(--green-glow)}
+.uz-icon{font-size:28px;margin-bottom:8px;opacity:.5}
+.uz-title{font-size:14px;font-weight:500;color:var(--text2);margin-bottom:4px}
+.uz-sub{font-size:12px;color:var(--text3)}
+
+/* Performance page */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);text-align:center}
+.kpi-num{font-family:var(--lora);font-size:28px;font-weight:600;color:var(--text);line-height:1}
+.kpi-lbl{font-size:11px;color:var(--text3);margin-top:4px}
+.kpi-change{font-size:11px;margin-top:3px;font-weight:500}
+.change-up{color:var(--green)}
+.change-down{color:var(--coral)}
+
+/* Cohort table */
+.cohort-table{width:100%;border-collapse:collapse}
+.cohort-table th{text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:8px 14px;border-bottom:1px solid var(--border)}
+.cohort-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle}
+.cohort-table tr:last-child td{border-bottom:none}
+.cohort-table tr:hover td{background:var(--bg2);cursor:pointer}
+.ct-name{font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+.ct-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.comp-inline{display:flex;align-items:center;gap:8px}
+.comp-bar-bg{flex:1;height:5px;border-radius:3px;background:var(--border);max-width:80px}
+.comp-bar-fill{height:100%;border-radius:3px}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:white;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Batch actions bar */
+.batch-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.6rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2)}
+.batch-bar .btn{font-size:11px;padding:5px 10px}
+
+/* Divider */
+.section-divider{height:1px;background:var(--border);margin:1.25rem 0}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo-wrap">
+    <div class="logo">Stance Health</div>
+    <div class="logo-divider"></div>
+    <div class="logo-role">Doctor Portal</div>
+  </div>
+  <div class="tb-right">
+    <div class="auth-box">
+      <input class="auth-input" id="doctor-auth-email" type="email" placeholder="Doctor email">
+      <input class="auth-input" id="doctor-auth-password" type="password" placeholder="Password">
+      <button class="auth-btn" onclick="signInDoctor()">Log in</button>
+      <button class="auth-btn secondary" onclick="signUpDoctor()">Sign up</button>
+      <button class="auth-btn secondary" onclick="signOutDoctor()">Log out</button>
+      <span class="auth-status" id="doctor-auth-status">Not signed in</span>
+    </div>
+    <button class="focus-btn" id="focusToggle" onclick="toggleFocusMode()">⚡ Focus Mode</button>
+    <div class="doc-chip">
+      <div class="doc-av">PK</div>
+      <div class="doc-name-sm">Dr. Priya Kapoor</div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <!-- Signal hierarchy: 1 number that matters -->
+  <div class="triage-summary">
+    <div class="ts-label">Today's Priority</div>
+    <div class="ts-row">
+      <div class="ts-stat emergency">
+        <div class="ts-num">1</div>
+        <div class="ts-lbl">Emergency</div>
+      </div>
+      <div class="ts-stat">
+        <div class="ts-num">1</div>
+        <div class="ts-lbl">Urgent</div>
+      </div>
+      <div class="ts-stat">
+        <div class="ts-num">2</div>
+        <div class="ts-lbl">Monitor</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-search">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="Search patients…" oninput="filterPatients(this.value)">
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label-sm">Overview</div>
+    <button class="nav-item active" id="nav-patients" onclick="showPage('patients')">
+      <span class="nav-icon">👥</span> All Patients
+      <span class="nav-badge badge-green">18</span>
+    </button>
+    <button class="nav-item" id="nav-alerts" onclick="showPage('alerts')">
+      <span class="nav-icon">🎯</span> Triage Queue
+      <span class="nav-badge badge-coral">4</span>
+    </button>
+    <button class="nav-item" id="nav-performance" onclick="showPage('performance')">
+      <span class="nav-icon">📊</span> Performance
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label-sm">Patient Filter</div>
+    <button class="nav-item" onclick="filterAndShow('emergency')">
+      <span class="nav-icon">🆘</span> Emergency
+      <span class="nav-badge badge-coral">1</span>
+    </button>
+    <button class="nav-item" onclick="filterAndShow('urgent')">
+      <span class="nav-icon">🔴</span> Urgent
+      <span class="nav-badge badge-coral">1</span>
+    </button>
+    <button class="nav-item" onclick="filterAndShow('needs-attention')">
+      <span class="nav-icon">🟡</span> Monitor
+      <span class="nav-badge badge-amber">2</span>
+    </button>
+    <button class="nav-item" onclick="filterAndShow('on-track')">
+      <span class="nav-icon">✅</span> On Track
+      <span class="nav-badge badge-green">14</span>
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label-sm">Tools</div>
+    <button class="nav-item" onclick="openUploadModal()">
+      <span class="nav-icon">📤</span> Upload Report
+    </button>
+    <button class="nav-item">
+      <span class="nav-icon">📅</span> Appointments
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sf-label">Today</div>
+    <div class="sf-stats">
+      <div class="sf-stat"><div class="sf-num">6</div><div class="sf-lbl">Sessions</div></div>
+      <div class="sf-stat"><div class="sf-num" style="color:var(--coral)">1</div><div class="sf-lbl">Emergency</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ═══ PAGE: PATIENTS ═══ -->
+<div class="page active" id="page-patients">
+  <div class="ph">
+    <div class="ph-left">
+      <h1 class="ph-title">All Patients</h1>
+      <p class="ph-sub">18 active · 1 emergency · 1 urgent · 2 monitoring</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost">⬇ Export</button>
+      <button class="btn btn-primary" onclick="openUploadModal()">📤 Upload Report</button>
+    </div>
+  </div>
+
+  <!-- BATCH ACTIONS — reduces burnout -->
+  <div class="batch-bar">
+    <span style="color:var(--text3)">Quick actions:</span>
+    <button class="btn btn-ghost" onclick="showToast('✅ Low-risk check-ins sent automatically')">📨 Auto-nudge low-risk patients</button>
+    <button class="btn btn-ghost" onclick="showToast('📋 Batch reports generated')">📋 Batch generate reports</button>
+    <button class="btn btn-ghost">📅 View today's schedule</button>
+  </div>
+
+  <div class="filter-row">
+    <div class="filter-chip active" onclick="setFilter(this,'all')">All <span class="filter-count">18</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'emergency')" style="background:var(--coral-light);color:var(--coral);border-color:#F0C0BC">🆘 Emergency <span class="filter-count">1</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'urgent')">🔴 Urgent <span class="filter-count">1</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'needs-attention')">🟡 Monitor <span class="filter-count">2</span></div>
+    <div class="filter-chip" onclick="setFilter(this,'on-track')">✅ On Track <span class="filter-count">14</span></div>
+  </div>
+
+  <div class="patient-grid" id="patientGrid">
+
+    <!-- EMERGENCY: Rohan — neurological red flags -->
+    <div class="pt-card emergency" data-status="emergency" onclick="openPatient('rohan')">
+      <div class="pt-header">
+        <div class="pt-av pt-av-coral">RM</div>
+        <div class="pt-info">
+          <div class="pt-name">Rohan Mehra</div>
+          <div class="pt-meta">28 yrs · Male · Week 14</div>
+        </div>
+        <div class="severity-ladder sev-emergency">🆘 Emergency</div>
+      </div>
+      <!-- Clinical Snapshot — replaces metric soup -->
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item critical">Radiating left leg pain — possible nerve root involvement</div>
+          <div class="cs-item critical">Left calf numbness reported (dermatomal pattern)</div>
+          <div class="cs-item warn">Deadlift trigger — loading paused automatically</div>
+        </div>
+      </div>
+      <!-- Recommended Action -->
+      <div class="rec-action">
+        <div class="ra-label">Suggested Action</div>
+        <div class="ra-text">Neurological screen within 24h · Monitor bowel/bladder · Switch to unloaded mobility only</div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 2 days ago</div>
+        <div class="reliability-badge rel-medium">📊 Reporting: Medium reliability</div>
+      </div>
+    </div>
+
+    <!-- URGENT: Ananya — post-surgical dropout -->
+    <div class="pt-card urgent" data-status="urgent" onclick="openPatient('ananya')">
+      <div class="pt-header">
+        <div class="pt-av pt-av-coral">AS</div>
+        <div class="pt-info">
+          <div class="pt-name">Ananya Sharma</div>
+          <div class="pt-meta">34 yrs · Female · Week 8</div>
+        </div>
+        <div class="severity-ladder sev-urgent">🔴 Urgent</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item critical">Post-surgical rotator cuff — 6 days no contact</div>
+          <div class="cs-item warn">3 sessions missed consecutively — high dropout risk</div>
+          <div class="cs-item">3 platform outreach attempts — no reply</div>
+        </div>
+      </div>
+      <div class="rec-action">
+        <div class="ra-label">Suggested Action</div>
+        <div class="ra-text">Direct call required today · Assess post-surgical regression risk · Document outreach attempt</div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 6 days ago</div>
+        <div class="reliability-badge rel-low">📊 Reporting: Low (silent)</div>
+      </div>
+    </div>
+
+    <!-- MONITOR: Vikram -->
+    <div class="pt-card needs-attention" data-status="needs-attention" onclick="openPatient('vikram')">
+      <div class="pt-header">
+        <div class="pt-av pt-av-amber">VN</div>
+        <div class="pt-info">
+          <div class="pt-name">Vikram Nair</div>
+          <div class="pt-meta">42 yrs · Male · Week 6</div>
+        </div>
+        <div class="severity-ladder sev-moderate">🟡 Monitor</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item warn">Adherence declining 3 weeks straight (72%→45%)</div>
+          <div class="cs-item">Pain stable at 3.4 — not worsening</div>
+          <div class="cs-item">Travel-related — low dropout archetype</div>
+        </div>
+      </div>
+      <div class="rec-action">
+        <div class="ra-label">Suggested Action</div>
+        <div class="ra-text">Brief check-in call · Offer travel-adapted exercise protocol</div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 Yesterday</div>
+        <div class="reliability-badge rel-high">📊 Reporting: High</div>
+      </div>
+    </div>
+
+    <!-- MONITOR: Preethi -->
+    <div class="pt-card needs-attention" data-status="needs-attention" onclick="openPatient()">
+      <div class="pt-header">
+        <div class="pt-av pt-av-amber">PM</div>
+        <div class="pt-info">
+          <div class="pt-name">Preethi Menon</div>
+          <div class="pt-meta">29 yrs · Female · Week 10</div>
+        </div>
+        <div class="severity-ladder sev-moderate">🟡 Monitor</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item warn">Night pain increasing — 10-day trend</div>
+          <div class="cs-item">Intensified screen use correlates with onset</div>
+          <div class="cs-item">No neurological symptoms reported</div>
+        </div>
+      </div>
+      <div class="rec-action">
+        <div class="ra-label">Suggested Action</div>
+        <div class="ra-text">Review ergonomics + pillow protocol · Non-urgent but watch this week</div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 3 days ago</div>
+        <div class="reliability-badge rel-high">📊 Reporting: High</div>
+      </div>
+    </div>
+
+    <!-- ON TRACK: Siddharth -->
+    <div class="pt-card on-track" data-status="on-track" onclick="openPatient()">
+      <div class="pt-header">
+        <div class="pt-av pt-av-green">SA</div>
+        <div class="pt-info">
+          <div class="pt-name">Siddharth Arora</div>
+          <div class="pt-meta">33 yrs · Male · Week 16</div>
+        </div>
+        <div class="severity-ladder sev-monitor">✅ On Track</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item">Post-ACL — cleared for light jogging this week</div>
+          <div class="cs-item">Pain 1.2/10 — excellent trajectory</div>
+          <div class="cs-item">95% adherence — high-quality sessions</div>
+        </div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 Today</div>
+        <div class="reliability-badge rel-high">📊 Reporting: High</div>
+      </div>
+    </div>
+
+    <!-- ON TRACK: Neha -->
+    <div class="pt-card on-track" data-status="on-track" onclick="openPatient()">
+      <div class="pt-header">
+        <div class="pt-av pt-av-green">NR</div>
+        <div class="pt-info">
+          <div class="pt-name">Neha Rao</div>
+          <div class="pt-meta">26 yrs · Female · Week 5</div>
+        </div>
+        <div class="severity-ladder sev-monitor">✅ On Track</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item">Plantar fasciitis — pain reducing week on week</div>
+          <div class="cs-item">Pain 2.1/10 (was 6.4 at intake)</div>
+          <div class="cs-item">88% adherence — good form reported</div>
+        </div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 Today</div>
+        <div class="reliability-badge rel-high">📊 Reporting: High</div>
+      </div>
+    </div>
+
+    <!-- ON TRACK: Tanvir -->
+    <div class="pt-card on-track" data-status="on-track" onclick="openPatient()">
+      <div class="pt-header">
+        <div class="pt-av pt-av-blue">TP</div>
+        <div class="pt-info">
+          <div class="pt-name">Tanvir Pasha</div>
+          <div class="pt-meta">38 yrs · Male · Week 12</div>
+        </div>
+        <div class="severity-ladder sev-monitor">✅ On Track</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item">Lumbar stenosis — maintenance phase started</div>
+          <div class="cs-item">Pain 2.4/10 — functional goal met</div>
+          <div class="cs-item">Transitioning to self-managed programme</div>
+        </div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 Yesterday</div>
+        <div class="reliability-badge rel-medium">📊 Reporting: Medium</div>
+      </div>
+    </div>
+
+    <!-- ON TRACK: Meera -->
+    <div class="pt-card on-track" data-status="on-track" onclick="openPatient()">
+      <div class="pt-header">
+        <div class="pt-av pt-av-green">MJ</div>
+        <div class="pt-info">
+          <div class="pt-name">Meera Joshi</div>
+          <div class="pt-meta">45 yrs · Female · Week 9</div>
+        </div>
+        <div class="severity-ladder sev-monitor">✅ On Track</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item">Hip bursitis — post-cortisone strengthening progressing</div>
+          <div class="cs-item">Pain 2.8/10 — expected trajectory for stage</div>
+          <div class="cs-item">78% adherence — consistent</div>
+        </div>
+      </div>
+      <div class="pt-footer">
+        <div class="pt-last">🕐 2 days ago</div>
+        <div class="reliability-badge rel-high">📊 Reporting: High</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ PAGE: PATIENT PROFILE (Rohan) ═══ -->
+<div class="page" id="page-profile-rohan">
+  <button class="back-btn" onclick="showPage('patients')">← Back to all patients</button>
+
+  <div class="profile-hero">
+    <div class="hero-inner">
+      <div class="hero-av">RM</div>
+      <div class="hero-text">
+        <div class="hero-name">Rohan Mehra</div>
+        <div class="hero-sub">28 yrs · Male · Software Engineer · Bengaluru</div>
+        <div class="hero-tags">
+          <span class="hero-tag">L4-L5 Herniation</span>
+          <span class="hero-tag">Desk-bound</span>
+          <span class="hero-tag">Gym-active</span>
+          <span class="hero-tag" style="background:rgba(255,160,150,.3);border-color:rgba(255,160,150,.4)">🆘 Emergency</span>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-week">14</div>
+        <div class="hero-week-lbl">Week of programme</div>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn-emergency btn" onclick="showToast('📞 Calling Rohan Mehra...')">📞 Emergency Call</button>
+      <button class="btn-white" onclick="openUploadModal()">📤 Upload Report</button>
+      <button class="btn-outline-w" onclick="showToast('✅ Flag cleared with timestamp logged')">✅ Clear Flag (Log Audit)</button>
+    </div>
+  </div>
+
+  <!-- CRITICAL ACTION PANEL — replaces vague coral banner -->
+  <div class="critical-action-panel gap">
+    <div class="cap-header">
+      <span class="cap-sev">🆘 Emergency — Act Today</span>
+      <div class="cap-title">Neurological red flags present</div>
+    </div>
+    <div class="cap-snapshot">
+      <strong>What happened:</strong>
+      Rohan reported sharp shooting pain down his left leg during his third deadlift set on Wednesday. Left calf numbness was also reported — this is a dermatomal pattern consistent with possible nerve root involvement at L4-L5. Exercise protocol has been paused automatically.
+    </div>
+    <div class="cap-recommended">
+      <div class="cap-rec-label">Recommended Protocol — Act in this order</div>
+      <div class="cap-rec-steps">
+        <div class="cap-rec-step">Neurological screen within 24 hours (SLR, dermatome check)</div>
+        <div class="cap-rec-step">Specifically ask about bowel/bladder symptoms (rule out cauda equina)</div>
+        <div class="cap-rec-step">Keep all spinal loading paused — switch to unloaded mobility only if exercises resume</div>
+        <div class="cap-rec-step">Consider urgent MRI if numbness persists or worsens</div>
+      </div>
+    </div>
+    <div class="cap-actions">
+      <button class="btn btn-emergency" onclick="showToast('📞 Calling Rohan...')">📞 Call Now</button>
+      <button class="btn btn-coral" onclick="showToast('📝 Note saved with timestamp')">📝 Log Clinical Note</button>
+      <button class="btn btn-ghost" onclick="showToast('📅 Urgent review booked')">📅 Book Urgent Review</button>
+    </div>
+  </div>
+
+  <!-- AUDIT TRAIL — medico-legal visibility -->
+  <div class="audit-trail gap">
+    <div class="at-label">
+      Medico-Legal Audit Trail
+      <span class="at-label-badge">✅ Logged</span>
+    </div>
+    <div class="at-item">
+      <div class="at-dot urgent"></div>
+      <div class="at-content">
+        <div class="at-action">Pain flag triggered — exercise protocol auto-paused</div>
+        <div class="at-meta">Patient notified via platform · Reviewed by Dr. Priya Kapoor</div>
+      </div>
+      <div class="at-time">7 May, 9:34 PM</div>
+    </div>
+    <div class="at-item">
+      <div class="at-dot done"></div>
+      <div class="at-content">
+        <div class="at-action">Patient opened warning notification</div>
+        <div class="at-meta">Confirmed receipt: "I stopped immediately"</div>
+      </div>
+      <div class="at-time">7 May, 9:41 PM</div>
+    </div>
+    <div class="at-item">
+      <div class="at-dot done"></div>
+      <div class="at-content">
+        <div class="at-action">Urgent appointment booked — 9 May, 11:00 AM</div>
+        <div class="at-meta">Escalated from routine 14-week review to urgent assessment</div>
+      </div>
+      <div class="at-time">7 May, 10:00 PM</div>
+    </div>
+    <div class="at-item">
+      <div class="at-dot pending"></div>
+      <div class="at-content">
+        <div class="at-action">Clinical review pending</div>
+        <div class="at-meta">Awaiting urgent session outcome · Protocol clearance required</div>
+      </div>
+      <div class="at-time">Pending</div>
+    </div>
+  </div>
+
+  <!-- Profile tabs -->
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTab(this,'overview-rohan')">Overview</button>
+    <button class="tab" onclick="switchTab(this,'trajectory-rohan')">Symptom Trajectory</button>
+    <button class="tab" onclick="switchTab(this,'exercises-rohan')">Exercise Log</button>
+    <button class="tab" onclick="switchTab(this,'reports-rohan')">Reports</button>
+    <button class="tab" onclick="switchTab(this,'notes-rohan')">Clinical Notes</button>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div class="tab-content active" id="tab-overview-rohan">
+
+    <!-- Behaviour Archetype — new -->
+    <div class="archetype-card gap">
+      <div class="arch-label">Behaviour Archetype</div>
+      <div class="arch-name">⚡ The Overdoer</div>
+      <div class="arch-desc">Rohan has a pattern of pushing through pain signals and increasing load faster than advised. He has a strong achievement orientation (gym 4×/week despite 10–12hr workdays) and a tendency to catastrophize when progress slows. High motivation but low signal reliability when in a "push" phase.</div>
+      <div class="arch-implication">Clinical implication: Patient-reported pain may be underreported in high-motivation weeks. Weight exercise self-reports accordingly. The Week 12 load increase likely reflects Rohan's overdoer pattern, not clinical clearance.</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-block">
+        <div class="ib-label">Primary Condition</div>
+        <div class="ib-value"><strong>L4-L5 Disc Herniation</strong>Lower back pain with intermittent sciatica, onset 18 months ago. Aggravated by long sitting and deadlifting.</div>
+      </div>
+      <div class="info-block">
+        <div class="ib-label">Treatment Goal</div>
+        <div class="ib-value"><strong>Full gym return in 20 weeks</strong>Target: 80kg deadlift pain-free, manage 8hr desk work comfortably.</div>
+      </div>
+      <div class="info-block">
+        <div class="ib-label">Lifestyle Context</div>
+        <div class="ib-value"><strong>Desk-bound, gym 4×/week</strong>10–12hr days, poor ergonomics, 6hrs sleep, high drive. Overdoer archetype.</div>
+      </div>
+      <div class="info-block">
+        <div class="ib-label">Key Constraints</div>
+        <div class="ib-value"><strong>Evening-only exercise window</strong>Travel 2×/month. Gym member. No home equipment.</div>
+      </div>
+      <div class="info-block">
+        <div class="ib-label">Current Protocol</div>
+        <div class="ib-value"><strong>Phase 3 — PAUSED</strong>Spinal loading suspended. Switch to unloaded mobility only after review.</div>
+      </div>
+      <div class="info-block">
+        <div class="ib-label">Reporting Reliability</div>
+        <div class="ib-value"><strong>Medium</strong>Likely underreports pain in high-motivation phases. Overdoer archetype warrants increased clinical scrutiny during load progressions.</div>
+      </div>
+    </div>
+
+    <!-- LONGITUDINAL NARRATIVE -->
+    <div class="card gap">
+      <div class="card-title">Clinical Narrative — What Actually Changed Over 14 Weeks</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot green">W1</div>
+          <div class="tl-body">
+            <div class="tl-week">Weeks 1–4 — Baseline & Stabilisation</div>
+            <div class="tl-event">Pain 8.1/10 at intake. Phase 1 protocol started.</div>
+            <div class="tl-detail">Compliance variable (52–65%). Desk ergonomics flagged as primary lifestyle aggravator.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot green">W8</div>
+          <div class="tl-body">
+            <div class="tl-week">Week 8 — Mid-Review</div>
+            <div class="tl-event">Pain reduced to 5.6/10. Phase 2 strength loading begins.</div>
+            <div class="tl-detail">Work stress reducing compliance. Evening reminder system recommended. Pain trajectory positive.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot amber">W10</div>
+          <div class="tl-body">
+            <div class="tl-week">Week 10 — Travel Drop</div>
+            <div class="tl-event">Compliance dips to 52% during 2-week business travel.</div>
+            <div class="tl-detail">Pain held at 4.8/10 despite lower adherence — positive sign for structural stability.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot green">W12</div>
+          <div class="tl-body">
+            <div class="tl-week">Week 12 — Phase 3 Start</div>
+            <div class="tl-event">Pain 4.2/10 — best result to date. Modified deadlift introduced at 40kg.</div>
+            <div class="tl-detail">Rohan increased load to 60kg within 10 days. Advised to stay conservative. Compliance improved to 75%.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot amber">W13</div>
+          <div class="tl-body">
+            <div class="tl-week">Week 13 — Early Warning Signs</div>
+            <div class="tl-event">Pain crept back to 5.8/10. Tightness reported Tuesday.</div>
+            <div class="tl-detail">Rohan reported "pushing through." Monday self-report rated pain 2/10 — likely underreported given overdoer pattern.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot coral">W14</div>
+          <div class="tl-body">
+            <div class="tl-week">Week 14 — Neurological Event 🆘</div>
+            <div class="tl-event">Radiating left leg pain + calf numbness during deadlift set 3.</div>
+            <div class="tl-detail">Exercise paused automatically. Urgent review booked. Do not resume loaded movement without clearance.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2 gap">
+      <div class="card">
+        <div class="card-title">Recovery Progress</div>
+        <div class="prog-row">
+          <div class="prog-head"><span class="prog-name">Pain trajectory</span><span class="prog-pct" style="color:var(--coral)">8.1 → 4.2 → 6.2 ↑</span></div>
+          <div class="prog-bar"><div class="prog-fill fill-amber" style="width:62%"></div></div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-head"><span class="prog-name">Functional capacity</span><span class="prog-pct">68%</span></div>
+          <div class="prog-bar"><div class="prog-fill fill-green" style="width:68%"></div></div>
+        </div>
+        <div class="prog-row" style="margin-bottom:0">
+          <div class="prog-head"><span class="prog-name">Effective (quality-adjusted) adherence</span><span class="prog-pct" style="color:var(--amber)">~51%</span></div>
+          <div class="prog-bar"><div class="prog-fill fill-amber" style="width:51%"></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Raw compliance 58% — adjusted for overdoer pattern and likely under-reported load increases</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Weekly Compliance — Last 8 Weeks</div>
+        <div class="chart-wrap" id="rohan-chart"></div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><div style="width:8px;height:8px;border-radius:50%;background:var(--green-mid)"></div>≥80%</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><div style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>50–80%</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><div style="width:8px;height:8px;border-radius:50%;background:var(--coral)"></div>&lt;50%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYMPTOM TRAJECTORY TAB — new -->
+  <div class="tab-content" id="tab-trajectory-rohan">
+    <div class="symptom-grid">
+      <div class="sym-card">
+        <div class="sym-label">Pain — Current</div>
+        <div class="sym-value" style="color:var(--coral)">6.2</div>
+        <div class="sym-context">During deadlift (Week 14). At rest: 3.1/10.</div>
+        <div class="sym-trend trend-worse">↑ Worsening from 4.2 at Week 12</div>
+      </div>
+      <div class="sym-card">
+        <div class="sym-label">Worst Time of Day</div>
+        <div class="sym-value">Evening</div>
+        <div class="sym-context">Post-exercise. Worsened sitting &gt;2hrs.</div>
+        <div class="sym-trend trend-worse">↑ Now also morning stiffness</div>
+      </div>
+      <div class="sym-card">
+        <div class="sym-label">Neurological Signs</div>
+        <div class="sym-value" style="color:var(--coral);font-size:18px">⚠ Present</div>
+        <div class="sym-context">Left calf numbness. Dermatomal L4-L5 pattern.</div>
+        <div class="sym-trend trend-worse">NEW — not present in previous weeks</div>
+      </div>
+      <div class="sym-card">
+        <div class="sym-label">Load Trigger</div>
+        <div class="sym-value">Deadlift</div>
+        <div class="sym-context">Onset at set 3. Patient self-escalated to 60kg (advised 40kg).</div>
+        <div class="sym-trend trend-worse">↑ Overdoer pattern confirmed</div>
+      </div>
+      <div class="sym-card">
+        <div class="sym-label">Sleep Quality</div>
+        <div class="sym-value">Poor</div>
+        <div class="sym-context">6 hrs/night. Disrupted by back discomfort 2–3× this week.</div>
+        <div class="sym-trend trend-worse">↓ Deteriorating</div>
+      </div>
+      <div class="sym-card">
+        <div class="sym-label">Bowel / Bladder</div>
+        <div class="sym-value" style="color:var(--green)">Normal</div>
+        <div class="sym-context">Patient confirmed no change. Must reassess at urgent review.</div>
+        <div class="sym-trend trend-stable">→ Monitor closely — cauda equina risk</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Symptom Context — Patient's Own Words</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="background:var(--coral-light);border:1px solid #F5C6C2;border-radius:9px;padding:.75rem 1rem">
+          <div style="font-size:11px;font-weight:600;color:var(--coral);margin-bottom:3px">Wed 7 May, 9:34 PM — Emergency</div>
+          <div style="font-size:13px;color:var(--text2)">"Sharp shooting pain down my left leg during my third deadlift set. I stopped immediately. Pain is maybe a 7/10. Left calf feels numb."</div>
+        </div>
+        <div style="background:var(--amber-light);border:1px solid #EDD59A;border-radius:9px;padding:.75rem 1rem">
+          <div style="font-size:11px;font-weight:600;color:var(--amber);margin-bottom:3px">Tue 6 May, 8:12 PM — Retrospectively significant</div>
+          <div style="font-size:13px;color:var(--text2)">"Felt some tightness in the lower back today but pushed through. Pain was about 4/10 max. Did all exercises."</div>
+          <div style="font-size:11px;color:var(--amber);margin-top:4px">⚠ Likely underreported — consistent with overdoer archetype. Actual pain may have been higher.</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:9px;padding:.75rem 1rem">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px">Mon 5 May, 7:55 PM</div>
+          <div style="font-size:13px;color:var(--text2)">"Good session. Back felt stable. Completed everything. Pain 2/10."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXERCISE LOG TAB -->
+  <div class="tab-content" id="tab-exercises-rohan">
+    <div class="card gap">
+      <div class="card-title">Week 14 Exercise Log — Protocol Paused After Wednesday</div>
+      <table class="ex-table">
+        <thead>
+          <tr><th>Exercise</th><th>Target</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Trend</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cat-Cow Stretch</strong></td>
+            <td>Daily</td>
+            <td>✅</td><td>✅</td><td>⛔</td><td>—</td><td>—</td><td>—</td>
+            <td><span class="ex-trend trend-down">↓ Paused</span></td>
+          </tr>
+          <tr>
+            <td><strong>Bird Dog</strong></td>
+            <td>Daily</td>
+            <td>✅</td><td>❌</td><td>⛔</td><td>—</td><td>—</td><td>—</td>
+            <td><span class="ex-trend trend-down">↓ Paused</span></td>
+          </tr>
+          <tr>
+            <td><strong>Glute Bridge</strong></td>
+            <td>6×/wk</td>
+            <td>✅</td><td>✅</td><td>⛔</td><td>—</td><td>—</td><td>—</td>
+            <td><span class="ex-trend trend-down">↓ Paused</span></td>
+          </tr>
+          <tr>
+            <td><strong>Modified Deadlift</strong><div style="font-size:11px;color:var(--coral);margin-top:2px">⚠ Patient self-escalated to 60kg (prescribed 40kg)</div></td>
+            <td>3×/wk</td>
+            <td>❌</td><td>✅</td><td>⛔</td><td>—</td><td>—</td><td>—</td>
+            <td><span class="ex-trend trend-down">↓ Trigger event</span></td>
+          </tr>
+          <tr>
+            <td><strong>Hip Flexor Stretch</strong></td>
+            <td>Daily</td>
+            <td>✅</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>—</td>
+            <td><span class="ex-trend trend-flat">→ Safe to continue</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:10px;font-size:12px;color:var(--text3);display:flex;gap:12px;flex-wrap:wrap">
+        <span>✅ Completed</span><span>❌ Missed</span><span>⛔ Stopped (pain event)</span><span>— Not yet due</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS TAB — insight-centric -->
+  <div class="tab-content" id="tab-reports-rohan">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="btn btn-primary" onclick="openUploadModal()">📤 Upload Report</button>
+    </div>
+
+    <div class="report-item" style="border-left:3px solid var(--green-mid)">
+      <div class="ri-icon">🩻</div>
+      <div class="ri-body">
+        <div class="ri-name">MRI — Lumbar Spine (L4-L5)</div>
+        <div class="ri-meta">Uploaded 12 Mar 2025 · Dr. Priya Kapoor</div>
+        <div class="ri-insight">📋 Key finding: Moderate L4-L5 disc herniation with mild neural foraminal narrowing. No cauda equina involvement at time of scan. Current neurological symptoms may indicate changed status — reassessment recommended.</div>
+      </div>
+      <div class="ri-actions">
+        <button class="ri-btn">View</button>
+        <button class="ri-btn">Compare</button>
+      </div>
+    </div>
+
+    <div class="report-item" style="border-left:3px solid var(--green-mid)">
+      <div class="ri-icon">📋</div>
+      <div class="ri-body">
+        <div class="ri-name">Week 12 Clinical Assessment</div>
+        <div class="ri-meta">Uploaded 23 Apr 2025 · Dr. Priya Kapoor</div>
+        <div class="ri-insight">📋 At Week 12: Pain 4.2/10, functional capacity 65%, Phase 3 cleared. No neurological signs. Note: current Week 14 presentation represents regression from this baseline.</div>
+      </div>
+      <div class="ri-actions">
+        <button class="ri-btn">View</button>
+        <button class="ri-btn">Compare vs Now</button>
+      </div>
+    </div>
+
+    <div class="report-item" style="border-left:3px solid var(--amber)">
+      <div class="ri-icon" style="background:var(--amber-light)">📋</div>
+      <div class="ri-body">
+        <div class="ri-name">Week 14 Assessment — <span style="color:var(--amber)">Pending Upload</span></div>
+        <div class="ri-meta">Due: 9 May 2025 · Complete after urgent session</div>
+        <div class="ri-insight">⚠ This assessment should specifically document neurological findings, SLR result, and bowel/bladder status for the audit trail.</div>
+      </div>
+      <div class="ri-actions">
+        <button class="ri-btn" onclick="openUploadModal()" style="background:var(--amber-light);color:var(--amber);border-color:#EDD59A">Upload Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLINICAL NOTES TAB -->
+  <div class="tab-content" id="tab-notes-rohan">
+    <div class="note-composer">
+      <div class="card-title">Add Clinical Note <span style="font-size:10px;font-weight:400;color:var(--green);text-transform:none;letter-spacing:0">— timestamped & audit-logged automatically</span></div>
+      <textarea class="note-textarea" placeholder="Type your clinical observation, protocol adjustment, or escalation reason…"></textarea>
+      <div class="note-footer-row">
+        <div class="note-type-chips">
+          <button class="ntc sel" onclick="this.classList.toggle('sel')">🔬 Clinical obs.</button>
+          <button class="ntc" onclick="this.classList.toggle('sel')">⚠️ Protocol change</button>
+          <button class="ntc" onclick="this.classList.toggle('sel')">📞 Outreach log</button>
+          <button class="ntc" onclick="this.classList.toggle('sel')">🚨 Escalation</button>
+          <button class="ntc" onclick="this.classList.toggle('sel')">✅ Clearance given</button>
+        </div>
+        <button class="btn btn-primary" onclick="saveNote()">Save + Log Audit</button>
+      </div>
+    </div>
+
+    <div class="note-item" style="border-left:3px solid var(--coral)">
+      <div class="note-header">
+        <div class="note-doc">Dr. Priya Kapoor · Clinical Observation</div>
+        <div class="note-date">7 May 2025, 10:02 PM</div>
+      </div>
+      <div class="note-text">Patient reported acute radiating left leg pain during Week 14 deadlift session. Left calf numbness also present — possible L4-L5 nerve root irritation pattern. Exercise protocol paused automatically. Urgent session booked for 9 May. <strong>Do not resume loaded exercise until clinical clearance.</strong> Patient opened and acknowledged warning notification at 9:41 PM.</div>
+      <div class="note-tags">
+        <span class="note-tag" style="background:var(--coral-light);color:var(--coral)">🚨 Emergency</span>
+        <span class="note-tag">Radiating pain</span>
+        <span class="note-tag">Calf numbness</span>
+        <span class="note-tag">Protocol paused</span>
+      </div>
+      <div class="note-audit">🔒 Audit log: Saved by Dr. Priya Kapoor · 7 May 2025, 10:02 PM · Patient notified ✅</div>
+    </div>
+
+    <div class="note-item">
+      <div class="note-header">
+        <div class="note-doc">Dr. Priya Kapoor · Week 12 Review</div>
+        <div class="note-date">23 Apr 2025, 2:15 PM</div>
+      </div>
+      <div class="note-text">Excellent progress. Pain 4.2/10. Functional capacity 65%. Progressed to Phase 3 — modified deadlift added at 40kg. <strong>Advised Rohan to stay conservative on load increases</strong> — he has a tendency to push harder than prescribed. Compliance improving (68% last 3 weeks). On track for gym return at Week 20.</div>
+      <div class="note-tags">
+        <span class="note-tag" style="background:var(--green-light);color:var(--green)">Phase 3 start</span>
+        <span class="note-tag">Load progression</span>
+        <span class="note-tag">Overdoer warning issued</span>
+      </div>
+      <div class="note-audit">🔒 Audit log: Saved by Dr. Priya Kapoor · 23 Apr 2025, 2:15 PM</div>
+    </div>
+
+    <div class="note-item">
+      <div class="note-header">
+        <div class="note-doc">Dr. Priya Kapoor · Week 8 Mid-Review</div>
+        <div class="note-date">9 Apr 2025, 11:30 AM</div>
+      </div>
+      <div class="note-text">Mid-programme review complete. Compliance inconsistent (avg 58%) — work stress cited. Pain trajectory positive (8.1 → 5.6). Recommended ergonomic chair adjustment. Discussed overdoer personality risk. Reminder system activated.</div>
+      <div class="note-tags">
+        <span class="note-tag">Compliance concern</span>
+        <span class="note-tag">Ergonomics</span>
+      </div>
+      <div class="note-audit">🔒 Audit log: Saved by Dr. Priya Kapoor · 9 Apr 2025, 11:30 AM</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: TRIAGE QUEUE (formerly Alerts — rebuilt with severity ladder) ═══ -->
+<div class="page" id="page-alerts">
+  <div class="ph">
+    <div class="ph-left">
+      <h1 class="ph-title">Triage Queue</h1>
+      <p class="ph-sub">4 cases · 1 emergency requiring action today</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost" onclick="showToast('✅ 2 low-risk cases auto-handled')">⚡ Auto-handle low-risk</button>
+    </div>
+  </div>
+
+  <!-- TIER 1: EMERGENCY -->
+  <div class="alert-tier">
+    <div class="alert-tier-header ath-emergency">🆘 Emergency — Act today</div>
+
+    <div class="alert-item" onclick="openPatient('rohan')" style="border-left:3px solid var(--coral);border-color:var(--coral)">
+      <div class="ai-icon emergency">🆘</div>
+      <div class="ai-body">
+        <div class="ai-title">Rohan Mehra — Possible nerve root involvement, Week 14</div>
+        <div class="ai-sub">Radiating left leg pain + left calf numbness during deadlift. Possible nerve irritation pattern at L4-L5. Exercise paused automatically. Patient acknowledged warning.</div>
+        <div class="ai-recommended">Neurological screen within 24h · Ask about bowel/bladder · Urgent MRI if numbness persists</div>
+        <div class="ai-dismissed">🔒 Logged: 7 May 10:02 PM · Patient notified ✅ · Appointment booked ✅</div>
+      </div>
+      <div class="ai-right">
+        <div class="ai-time">2 days ago</div>
+        <button class="ai-action emergency" onclick="event.stopPropagation();showToast('📞 Calling Rohan...')">📞 Call Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 2: URGENT -->
+  <div class="alert-tier">
+    <div class="alert-tier-header ath-urgent">🔴 Urgent — Act this week</div>
+
+    <div class="alert-item" style="border-left:3px solid var(--coral)">
+      <div class="ai-icon coral">📵</div>
+      <div class="ai-body">
+        <div class="ai-title">Ananya Sharma — 6 days silent post-surgery</div>
+        <div class="ai-sub">Post-surgical rotator cuff (Week 8). 3 consecutive missed sessions. Platform outreach ×3 — no reply. Dropout risk is high; post-surgical window matters clinically.</div>
+        <div class="ai-recommended">Direct phone call today · Document outreach attempt for audit trail</div>
+        <div class="ai-dismissed">🔒 Platform outreach logged: 3 attempts, all unread</div>
+      </div>
+      <div class="ai-right">
+        <div class="ai-time">6 days</div>
+        <button class="ai-action coral" onclick="showToast('📞 Calling Ananya...')">Call Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 3: MONITOR -->
+  <div class="alert-tier">
+    <div class="alert-tier-header ath-monitor">🟡 Monitor — Watch this week</div>
+
+    <div class="alert-item" style="border-left:3px solid var(--amber)">
+      <div class="ai-icon amber">📉</div>
+      <div class="ai-body">
+        <div class="ai-title">Vikram Nair — Compliance declining, travel pattern</div>
+        <div class="ai-sub">Knee OA (Week 6). Adherence: 72% → 45% over 3 weeks. Travel-related — low clinical risk but early drop-off at Week 6 predicts abandonment. Pain stable at 3.4/10.</div>
+        <div class="ai-recommended">Brief check-in call · Offer travel-adapted protocol · No clinical urgency</div>
+      </div>
+      <div class="ai-right">
+        <div class="ai-time">Yesterday</div>
+        <button class="ai-action amber" onclick="showToast('📅 Check-in scheduled')">Check In</button>
+      </div>
+    </div>
+
+    <div class="alert-item" style="border-left:3px solid var(--amber)">
+      <div class="ai-icon amber">🌙</div>
+      <div class="ai-body">
+        <div class="ai-title">Preethi Menon — Night pain worsening, cervical</div>
+        <div class="ai-sub">Cervical spondylosis (Week 10). Night pain increasing alongside screen time. No neurological signs reported. Likely postural deterioration.</div>
+        <div class="ai-recommended">Review ergonomics + pillow protocol · Non-urgent, monitor 1 week before escalating</div>
+      </div>
+      <div class="ai-right">
+        <div class="ai-time">3 days ago</div>
+        <button class="ai-action amber">Review</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: PERFORMANCE ═══ -->
+<div class="page" id="page-performance">
+  <div class="ph">
+    <div class="ph-left">
+      <h1 class="ph-title">Practice Performance</h1>
+      <p class="ph-sub">18 active patients · May 2025</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-num">74%</div>
+      <div class="kpi-lbl">Avg quality-adjusted adherence</div>
+      <div class="kpi-change change-up">↑ 4% vs last month</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">3.8</div>
+      <div class="kpi-lbl">Avg pain score (0–10)</div>
+      <div class="kpi-change change-up">↓ 0.6 (improving)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">11%</div>
+      <div class="kpi-lbl">Dropout rate (rolling 90d)</div>
+      <div class="kpi-change change-up">↓ 3% improvement</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">89%</div>
+      <div class="kpi-lbl">Outcome satisfaction</div>
+      <div class="kpi-change change-up">↑ 7% vs last quarter</div>
+    </div>
+  </div>
+
+  <div class="card gap">
+    <div class="card-title">Patient Cohort — Outcome-First View</div>
+    <table class="cohort-table">
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Condition</th>
+          <th>Pain Δ</th>
+          <th>Functional Gain</th>
+          <th>Archetype</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr onclick="openPatient('rohan')">
+          <td><div class="ct-name"><div class="ct-av pt-av-coral" style="background:var(--coral-light);color:var(--coral)">RM</div>Rohan Mehra</div></td>
+          <td>L4-L5 Herniation</td>
+          <td style="color:var(--coral)">8.1 → 6.2 ↑</td>
+          <td>68%</td>
+          <td>⚡ Overdoer</td>
+          <td><span class="severity-ladder sev-emergency" style="font-size:10px;padding:2px 8px">🆘 Emergency</span></td>
+        </tr>
+        <tr>
+          <td><div class="ct-name"><div class="ct-av" style="background:var(--coral-light);color:var(--coral)">AS</div>Ananya Sharma</div></td>
+          <td>Rotator cuff (post-sx)</td>
+          <td style="color:var(--amber)">—</td>
+          <td>Unknown</td>
+          <td>😶 Silent</td>
+          <td><span class="severity-ladder sev-urgent" style="font-size:10px;padding:2px 8px">🔴 Urgent</span></td>
+        </tr>
+        <tr>
+          <td><div class="ct-name"><div class="ct-av" style="background:var(--amber-light);color:var(--amber)">VN</div>Vikram Nair</div></td>
+          <td>Knee OA (Grade II)</td>
+          <td style="color:var(--green)">5.1 → 3.4</td>
+          <td>55%</td>
+          <td>✈ Traveller</td>
+          <td><span class="severity-ladder sev-moderate" style="font-size:10px;padding:2px 8px">🟡 Monitor</span></td>
+        </tr>
+        <tr>
+          <td><div class="ct-name"><div class="ct-av" style="background:var(--green-light);color:var(--green)">SA</div>Siddharth Arora</div></td>
+          <td>Post-ACL</td>
+          <td style="color:var(--green)">6.4 → 1.2</td>
+          <td>91%</td>
+          <td>🏆 Compliant</td>
+          <td><span class="severity-ladder sev-monitor" style="font-size:10px;padding:2px 8px">✅ On Track</span></td>
+        </tr>
+        <tr>
+          <td><div class="ct-name"><div class="ct-av" style="background:var(--green-light);color:var(--green)">NR</div>Neha Rao</div></td>
+          <td>Plantar fasciitis</td>
+          <td style="color:var(--green)">6.4 → 2.1</td>
+          <td>72%</td>
+          <td>🏆 Compliant</td>
+          <td><span class="severity-ladder sev-monitor" style="font-size:10px;padding:2px 8px">✅ On Track</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title">Upload Clinical Report</div>
+    <div class="modal-sub">Auto-summarised and added to the patient's audit trail</div>
+    <div class="form-group">
+      <label class="form-label">Patient</label>
+      <select class="form-select">
+        <option>Rohan Mehra — Week 14 Assessment</option>
+        <option>Ananya Sharma</option>
+        <option>Vikram Nair</option>
+        <option>Other patient…</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Report Type</label>
+      <select class="form-select">
+        <option>Clinical Assessment</option>
+        <option>MRI / Imaging</option>
+        <option>Physiotherapy Review</option>
+        <option>Referral Letter</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Clinical Notes (for audit log)</label>
+      <textarea class="form-textarea" placeholder="Key findings from this report — will be logged with timestamp…"></textarea>
+    </div>
+    <div class="upload-zone" onclick="document.getElementById('modalFile').click()">
+      <div class="uz-icon">📎</div>
+      <div class="uz-title">Click to attach file</div>
+      <div class="uz-sub">PDF, JPG, PNG — max 20MB</div>
+      <input type="file" id="modalFile" style="display:none" onchange="showFileName(event)">
+    </div>
+    <div id="fileNameDisplay" style="display:none;font-size:12px;color:var(--green);margin-top:6px;padding:6px 10px;background:var(--green-light);border-radius:7px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeUploadModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadReport()">Upload + Log Audit Trail</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://xentxpttnrgtiqqrbgom.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlbnR4cHR0bnJndGlxcXJiZ29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNDY0MTcsImV4cCI6MjA5MzcyMjQxN30.8pacFf-OZvtfvCFIslx-7InhSmk9tFbZzoydPY-Lwzs';
+const supabaseClient = window.supabase && !SUPABASE_ANON_KEY.includes('PASTE_')
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+let currentDoctorUser = null;
+let activeFilter = 'all';
+let focusModeActive = false;
+
+function setDoctorAuthStatus(message) {
+  const status = document.getElementById('doctor-auth-status');
+  if (status) status.textContent = message;
+}
+
+function requireSupabase() {
+  if (supabaseClient) return true;
+  setDoctorAuthStatus('Add anon key');
+  showToast('Add your Supabase anon key to enable Auth and live data.');
+  return false;
+}
+
+function getDoctorAuthFields() {
+  return {
+    email: document.getElementById('doctor-auth-email')?.value.trim(),
+    password: document.getElementById('doctor-auth-password')?.value
+  };
+}
+
+async function signUpDoctor() {
+  if (!requireSupabase()) return;
+  const { email, password } = getDoctorAuthFields();
+  if (!email || !password) { setDoctorAuthStatus('Enter email/pass'); return; }
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
+  if (error) { setDoctorAuthStatus(error.message); return; }
+  currentDoctorUser = data.user;
+  setDoctorAuthStatus(data.session ? 'Signed up' : 'Check email');
+  await upsertDoctorUser(data.user || { email });
+}
+
+async function signInDoctor() {
+  if (!requireSupabase()) return;
+  const { email, password } = getDoctorAuthFields();
+  if (!email || !password) { setDoctorAuthStatus('Enter email/pass'); return; }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) { setDoctorAuthStatus(error.message); return; }
+  currentDoctorUser = data.user;
+  setDoctorAuthStatus('Signed in');
+  await upsertDoctorUser(data.user);
+  await loadLivePatients();
+}
+
+async function signOutDoctor() {
+  if (!requireSupabase()) return;
+  await supabaseClient.auth.signOut();
+  currentDoctorUser = null;
+  setDoctorAuthStatus('Signed out');
+}
+
+async function upsertDoctorUser(user) {
+  if (!user?.id) return;
+  const { error } = await supabaseClient.from('doctors').upsert({
+    user_id: user.id,
+    email: user.email,
+    full_name: document.querySelector('.doc-name-sm')?.textContent.trim() || null
+  }, { onConflict: 'user_id' });
+  if (error) console.error('Doctor upsert failed', error);
+}
+
+async function hydrateDoctorAuth() {
+  if (!supabaseClient) return;
+  const { data } = await supabaseClient.auth.getSession();
+  currentDoctorUser = data.session?.user || null;
+  setDoctorAuthStatus(currentDoctorUser ? 'Signed in' : 'Not signed in');
+  if (currentDoctorUser) await upsertDoctorUser(currentDoctorUser);
+  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+    currentDoctorUser = session?.user || null;
+    setDoctorAuthStatus(currentDoctorUser ? 'Signed in' : 'Not signed in');
+    if (currentDoctorUser) await upsertDoctorUser(currentDoctorUser);
+  });
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  const nav = document.getElementById('nav-' + id);
+  if (nav) nav.classList.add('active');
+}
+
+function openPatient(id) {
+  if (id === 'rohan') {
+    showPage('profile-rohan');
+  } else {
+    showToast('Full profile coming soon — click Rohan Mehra to see the complete rebuilt example');
+  }
+}
+
+function filterAndShow(status) {
+  showPage('patients');
+  activeFilter = status;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  renderFilter();
+}
+
+function setFilter(el, status) {
+  activeFilter = status;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderFilter();
+}
+
+function renderFilter() {
+  document.querySelectorAll('.pt-card').forEach(c => {
+    const s = c.getAttribute('data-status');
+    // 'emergency' and 'urgent' should show when filtering flagged-equiv; adjust as needed
+    const show = activeFilter === 'all' || s === activeFilter;
+    c.style.display = show ? '' : 'none';
+  });
+}
+
+function filterPatients(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('.pt-card').forEach(c => {
+    const name = c.querySelector('.pt-name').textContent.toLowerCase();
+    const snap = c.querySelector('.clinical-snapshot') ? c.querySelector('.clinical-snapshot').textContent.toLowerCase() : '';
+    c.style.display = (!q || name.includes(q) || snap.includes(q)) ? '' : 'none';
+  });
+}
+
+function normalizeStatus(row) {
+  const raw = String(row.risk_level || row.current_status || row.status || '').toLowerCase();
+  if (raw.includes('emergency') || raw.includes('critical')) return 'emergency';
+  if (raw.includes('urgent') || raw.includes('high')) return 'urgent';
+  if (raw.includes('monitor') || raw.includes('moderate') || raw.includes('attention')) return 'needs-attention';
+  return 'on-track';
+}
+
+function statusLabel(status) {
+  return {
+    emergency: 'Emergency',
+    urgent: 'Urgent',
+    'needs-attention': 'Monitor',
+    'on-track': 'On Track'
+  }[status] || 'On Track';
+}
+
+function initialsFor(name) {
+  return (name || 'Patient')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase();
+}
+
+function patientCardHTML(row) {
+  const name = row.full_name || row.name || [row.first_name, row.last_name].filter(Boolean).join(' ') || row.email || 'Unnamed Patient';
+  const status = normalizeStatus(row);
+  const avatarClass = status === 'emergency' || status === 'urgent' ? 'pt-av-coral' : status === 'needs-attention' ? 'pt-av-amber' : 'pt-av-green';
+  const severityClass = status === 'emergency' ? 'sev-emergency' : status === 'urgent' ? 'sev-urgent' : status === 'needs-attention' ? 'sev-moderate' : 'sev-monitor';
+  const condition = row.primary_concern || row.condition || row.diagnosis || 'New Stance programme';
+  const week = row.current_week || row.week || 'New';
+  const snapshot = row.clinical_snapshot || row.medical_history || row.note || 'Recently added through onboarding.';
+  const action = status === 'emergency'
+    ? 'Call today and review red flags'
+    : status === 'urgent'
+      ? 'Direct check-in this week'
+      : status === 'needs-attention'
+        ? 'Monitor adherence and symptoms'
+        : 'Continue current plan';
+  return `
+    <div class="pt-card ${status}" data-status="${status}" onclick="openPatient('${row.id || ''}')">
+      <div class="pt-header">
+        <div class="pt-av ${avatarClass}">${initialsFor(name)}</div>
+        <div class="pt-info">
+          <div class="pt-name">${name}</div>
+          <div class="pt-meta">${row.age ? row.age + ' yrs · ' : ''}${condition} · ${week === 'New' ? 'New' : 'Week ' + week}</div>
+        </div>
+        <div class="severity-ladder ${severityClass}">${statusLabel(status)}</div>
+      </div>
+      <div class="clinical-snapshot">
+        <div class="cs-label">Clinical Snapshot</div>
+        <div class="cs-items">
+          <div class="cs-item ${status === 'emergency' || status === 'urgent' ? 'critical' : ''}">${snapshot}</div>
+        </div>
+      </div>
+      <div class="rec-action">
+        <div class="ra-label">Recommended Action</div>
+        <div class="ra-text">${action}</div>
+      </div>
+      <div class="pt-footer">
+        <span class="pt-last">${row.phone || row.email || 'Contact pending'}</span>
+        <span class="reliability-badge rel-high">Live</span>
+      </div>
+    </div>`;
+}
+
+function updateLiveCounts(rows) {
+  const counts = rows.reduce((acc, row) => {
+    acc[normalizeStatus(row)] += 1;
+    return acc;
+  }, { emergency: 0, urgent: 0, 'needs-attention': 0, 'on-track': 0 });
+  const total = rows.length;
+  document.querySelector('#page-patients .ph-sub').textContent = `${total} active · ${counts.emergency} emergency · ${counts.urgent} urgent · ${counts['needs-attention']} monitoring`;
+  const allBadge = document.querySelector('#nav-patients .nav-badge');
+  if (allBadge) allBadge.textContent = total;
+  const triage = document.querySelectorAll('.ts-num');
+  if (triage.length >= 3) {
+    triage[0].textContent = counts.emergency;
+    triage[1].textContent = counts.urgent;
+    triage[2].textContent = counts['needs-attention'];
+  }
+}
+
+async function loadLivePatients() {
+  if (!supabaseClient) {
+    showToast('Add your Supabase anon key to load live patients.');
+    return;
+  }
+  const { data, error } = await supabaseClient
+    .from('patients')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('Supabase patients load failed', error);
+    showToast('Supabase patients error: ' + error.message);
+    return;
+  }
+  if (!data || !data.length) {
+    showToast('Connected to Supabase. No patients found yet.');
+    return;
+  }
+  document.getElementById('patientGrid').innerHTML = data.map(patientCardHTML).join('');
+  updateLiveCounts(data);
+  renderFilter();
+  showToast('Loaded ' + data.length + ' live patients from Supabase.');
+}
+
+function switchTab(el, id) {
+  const profile = el.closest('.page');
+  profile.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  profile.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const tc = document.getElementById('tab-' + id);
+  if (tc) tc.classList.add('active');
+}
+
+function toggleFocusMode() {
+  focusModeActive = !focusModeActive;
+  const btn = document.getElementById('focusToggle');
+  if (focusModeActive) {
+    btn.classList.add('active');
+    // In focus mode: hide all on-track patients
+    document.querySelectorAll('.pt-card.on-track').forEach(c => c.style.display = 'none');
+    showToast('⚡ Focus mode: showing urgent & emergency only');
+  } else {
+    btn.classList.remove('active');
+    document.querySelectorAll('.pt-card').forEach(c => c.style.display = '');
+    showToast('Focus mode off — all patients visible');
+  }
+}
+
+function openUploadModal() {
+  document.getElementById('uploadModal').classList.add('open');
+}
+function closeUploadModal() {
+  document.getElementById('uploadModal').classList.remove('open');
+}
+function closeModalOutside(e) {
+  if (e.target.id === 'uploadModal') closeUploadModal();
+}
+function showFileName(e) {
+  const f = e.target.files[0];
+  if (f) {
+    const d = document.getElementById('fileNameDisplay');
+    d.textContent = '📎 ' + f.name;
+    d.style.display = 'block';
+  }
+}
+function uploadReport() {
+  closeUploadModal();
+  showToast('✅ Report uploaded · Audit trail logged · Summary generated');
+}
+
+function saveNote() {
+  const ta = document.querySelector('.note-textarea');
+  if (!ta.value.trim()) return;
+  showToast('✅ Clinical note saved · Timestamped in audit trail');
+  ta.value = '';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Build chart
+(function() {
+  const data = [72, 65, 80, 58, 52, 75, 68, 32];
+  const weeks = ['W7','W8','W9','W10','W11','W12','W13','W14'];
+  const wrap = document.getElementById('rohan-chart');
+  if (!wrap) return;
+  const maxH = 110;
+  data.forEach((v, i) => {
+    const grp = document.createElement('div');
+    grp.className = 'bar-group';
+    const bar = document.createElement('div');
+    bar.className = 'bar-stack';
+    const h = Math.round(v / 100 * maxH);
+    bar.style.height = h + 'px';
+    bar.style.background = v >= 80 ? 'var(--green-mid)' : v >= 50 ? 'var(--amber)' : 'var(--coral)';
+    bar.title = weeks[i] + ': ' + v + '%';
+    bar.style.borderRadius = '4px 4px 0 0';
+    bar.style.minHeight = '4px';
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-lbl';
+    lbl.textContent = weeks[i];
+    grp.appendChild(bar);
+    grp.appendChild(lbl);
+    wrap.appendChild(grp);
+  });
+})();
+hydrateDoctorAuth();
+loadLivePatients();
+</script>
+</body>
+</html>
