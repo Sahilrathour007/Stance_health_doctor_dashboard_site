@@ -414,25 +414,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 /* Divider */
 .section-divider{height:1px;background:var(--border);margin:1.25rem 0}
 
-/* ═══ AUTH GATE ═══ */
-.auth-gate{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
-.auth-gate.hidden{display:none}
-.auth-panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:var(--shadow-md);text-align:center}
-.auth-logo{font-family:var(--lora);font-size:22px;font-weight:600;color:var(--green);font-style:italic;letter-spacing:-.02em;margin-bottom:4px}
-.auth-tagline{font-size:13px;color:var(--text3);margin-bottom:2rem}
-.auth-tabs{display:flex;background:var(--bg2);border-radius:10px;padding:3px;margin-bottom:1.5rem}
-.auth-tab{flex:1;padding:7px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text3);font-family:var(--sans);transition:.18s}
-.auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
-.auth-field{margin-bottom:12px;text-align:left}
-.auth-field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
-.auth-field input{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;font-family:var(--sans);color:var(--text);background:var(--bg2);outline:none;transition:.18s}
-.auth-field input:focus{border-color:var(--green-mid);background:var(--surface)}
-.auth-submit{width:100%;background:var(--green);color:white;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:.18s;margin-top:4px}
-.auth-submit:hover{background:var(--green-mid)}
-.auth-submit:disabled{opacity:.6;cursor:not-allowed}
-.auth-error{font-size:12px;color:var(--coral);margin-top:10px;min-height:18px;text-align:center}
-.auth-divider{height:1px;background:var(--border);margin:1.25rem 0;position:relative}
-.auth-divider::after{content:'or';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);padding:0 8px;font-size:11px;color:var(--text3)}
+
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;text-align:center;grid-column:1/-1}
 .es-icon{font-size:40px;margin-bottom:1rem;opacity:.4}
 .es-title{font-family:var(--lora);font-size:18px;font-weight:500;color:var(--text2);font-style:italic;margin-bottom:.5rem}
@@ -441,29 +423,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 </head>
 <body>
 
-<!-- ═══ AUTH GATE — shown until doctor is signed in ═══ -->
-<div class="auth-gate" id="authGate">
-  <div class="auth-panel">
-    <div class="auth-logo">Stance Health</div>
-    <div class="auth-tagline">Doctor Portal — Sign in to continue</div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Log In</button>
-      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
-    </div>
-    <div class="auth-field">
-      <label>Email</label>
-      <input type="email" id="gate-email" placeholder="doctor@clinic.com" autocomplete="email">
-    </div>
-    <div class="auth-field">
-      <label>Password</label>
-      <input type="password" id="gate-password" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <button class="auth-submit" id="gate-submit" onclick="gateSubmit()">Log In</button>
-    <div class="auth-error" id="gate-error"></div>
-  </div>
-</div>
-
-<div class="shell" id="appShell" style="display:none">
+<div class="shell" id="appShell">
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -472,13 +432,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
     <div class="logo-divider"></div>
     <div class="logo-role">Doctor Portal</div>
   </div>
-  <div class="tb-right" id="topbar-logged-in" style="display:none">
+  <div class="tb-right" id="topbar-logged-in">
     <button class="focus-btn" id="focusToggle" onclick="toggleFocusMode()">⚡ Focus Mode</button>
-    <div class="doc-chip">
-      <div class="doc-av" id="topbar-av">?</div>
-      <div class="doc-name-sm" id="topbar-name">Doctor</div>
-    </div>
-    <button class="auth-btn secondary" onclick="signOutDoctor()" style="margin-left:4px">Log out</button>
   </div>
 </header>
 
@@ -1119,6 +1074,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 <script>
 const SUPABASE_URL = 'https://xentxpttnrgtiqqrbgom.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlbnR4cHR0bnJndGlxcXJiZ29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNDY0MTcsImV4cCI6MjA5MzcyMjQxN30.8pacFf-OZvtfvCFIslx-7InhSmk9tFbZzoydPY-Lwzs';
+const API_BASE_URL = 'https://stance-health-backend.onrender.com';
 const supabaseClient = window.supabase && !SUPABASE_ANON_KEY.includes('PASTE_')
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
@@ -1127,113 +1083,30 @@ let activeFilter = 'all';
 let focusModeActive = false;
 let authMode = 'signin'; // 'signin' | 'signup'
 
-/* ─── Auth Gate UI ─────────────────────────────── */
-function switchAuthTab(mode) {
-  authMode = mode;
-  document.getElementById('tab-signin').classList.toggle('active', mode === 'signin');
-  document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
-  document.getElementById('gate-submit').textContent = mode === 'signin' ? 'Log In' : 'Create Account';
-  document.getElementById('gate-error').textContent = '';
+async function apiRequest(path, options = {}) {
+  const session = (await supabaseClient?.auth?.getSession())?.data?.session;
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+  if (session?.access_token) headers.Authorization = 'Bearer ' + session.access_token;
+  const resp = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(data.error || 'Request failed');
+  return data;
 }
 
-function setGateError(msg) {
-  document.getElementById('gate-error').textContent = msg || '';
-}
-
-function setGateLoading(loading) {
-  const btn = document.getElementById('gate-submit');
-  btn.disabled = loading;
-  btn.textContent = loading ? 'Please wait…' : (authMode === 'signin' ? 'Log In' : 'Create Account');
-}
-
-async function gateSubmit() {
-  if (!supabaseClient) {
-    setGateError('Supabase is not configured. Add your anon key to enable auth.');
-    return;
-  }
-  const email = document.getElementById('gate-email').value.trim();
-  const password = document.getElementById('gate-password').value;
-  if (!email || !password) { setGateError('Please enter your email and password.'); return; }
-  setGateLoading(true);
-  setGateError('');
-  if (authMode === 'signin') {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) { setGateError(error.message); setGateLoading(false); return; }
-    await onSignedIn(data.user);
-  } else {
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) { setGateError(error.message); setGateLoading(false); return; }
-    if (!data.session) {
-      setGateError('Account created! Check your email to confirm, then log in.');
-      setGateLoading(false);
-      switchAuthTab('signin');
-      return;
-    }
-    await onSignedIn(data.user);
-  }
-  setGateLoading(false);
-}
-
-/* ─── Auth state management ────────────────────── */
-async function onSignedIn(user) {
-  currentDoctorUser = user;
-  // Show app, hide gate
-  document.getElementById('authGate').classList.add('hidden');
-  document.getElementById('appShell').style.display = '';
-  document.getElementById('topbar-logged-in').style.display = '';
-  // Set topbar identity
-  const initials = (user.email || 'D').substring(0, 2).toUpperCase();
-  const avEl = document.getElementById('topbar-av');
-  const nameEl = document.getElementById('topbar-name');
-  if (avEl) avEl.textContent = initials;
-  if (nameEl) nameEl.textContent = user.email || 'Doctor';
-  // Upsert doctor record
-  await upsertDoctorUser(user);
-  // Load real patients
-  await loadLivePatients();
-}
-
-function onSignedOut() {
-  currentDoctorUser = null;
-  document.getElementById('authGate').classList.remove('hidden');
-  document.getElementById('appShell').style.display = 'none';
-  document.getElementById('topbar-logged-in').style.display = 'none';
-  // Clear patient grid
-  document.getElementById('patientGrid').innerHTML = '';
-}
-
-async function signOutDoctor() {
-  if (supabaseClient) await supabaseClient.auth.signOut();
-  onSignedOut();
-}
-
-async function upsertDoctorUser(user) {
-  if (!supabaseClient || !user?.id) return;
-  const { error } = await supabaseClient.from('doctors').upsert({
-    user_id: user.id,
-    email: user.email,
-    full_name: null
-  }, { onConflict: 'user_id' });
-  if (error) console.error('Doctor upsert failed', error);
-}
-
-async function hydrateDoctorAuth() {
-  if (!supabaseClient) {
-    // No Supabase: stay on gate but show a hint
-    setGateError('Demo mode: Supabase not configured. Auth is disabled.');
-    return;
-  }
-  const { data } = await supabaseClient.auth.getSession();
-  if (data.session?.user) {
-    await onSignedIn(data.session.user);
-  }
-  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-    if (session?.user && !currentDoctorUser) {
-      await onSignedIn(session.user);
-    } else if (!session && currentDoctorUser) {
-      onSignedOut();
-    }
+async function applyBackendSession(session) {
+  if (!session || !supabaseClient) return;
+  await supabaseClient.auth.setSession({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token
   });
+}
+
+/* ─── App init (no auth) ────────────────────────── */
+async function hydrateDoctorAuth() {
+  await loadLivePatients();
 }
 
 function showPage(id) {
@@ -1549,8 +1422,9 @@ async function loadLivePatients() {
 
   // Fallback: try the Render backend
   try {
-    const resp = await fetch('https://stance-health-backend.onrender.com/api/patients', {
-      headers: currentDoctorUser ? { 'Authorization': 'Bearer ' + (await supabaseClient?.auth?.getSession())?.data?.session?.access_token } : {}
+    const session = (await supabaseClient?.auth?.getSession())?.data?.session;
+    const resp = await fetch(`${API_BASE_URL}/api/patients`, {
+      headers: currentDoctorUser && session?.access_token ? { 'Authorization': 'Bearer ' + session.access_token } : {}
     });
     if (resp.ok) {
       const data = await resp.json();
@@ -1660,12 +1534,7 @@ function showToast(msg) {
 })();
 hydrateDoctorAuth();
 
-// Allow Enter key on auth gate
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !document.getElementById('authGate').classList.contains('hidden')) {
-    gateSubmit();
-  }
-});
+
 </script>
 </body>
 </html>
