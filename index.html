@@ -419,6 +419,76 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .es-icon{font-size:40px;margin-bottom:1rem;opacity:.4}
 .es-title{font-family:var(--lora);font-size:18px;font-weight:500;color:var(--text2);font-style:italic;margin-bottom:.5rem}
 .es-sub{font-size:13px;color:var(--text3)}
+
+/* ── APPOINTMENT APPROVAL STYLES ── */
+.appr-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:1.5rem;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.appr-leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.appr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.appr-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.appr-section-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
+.appr-section-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.appr-count{font-size:10px;padding:2px 8px;border-radius:8px;background:var(--amber-light);color:var(--amber);font-weight:600}
+
+.appt-card{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start;transition:.15s}
+.appt-card:last-child{border-bottom:none}
+.appt-card:hover{background:var(--bg2)}
+.appt-card.confirmed{background:linear-gradient(90deg,rgba(26,102,69,.04),transparent)}
+.appt-card.rescheduled{background:linear-gradient(90deg,rgba(30,74,140,.04),transparent)}
+.appt-card.cancelled{opacity:.6}
+
+.appt-left{display:flex;gap:12px;align-items:flex-start}
+.appt-av{width:38px;height:38px;border-radius:50%;background:var(--amber-light);color:var(--amber);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.appt-av.confirmed{background:var(--green-light);color:var(--green)}
+.appt-av.rescheduled{background:var(--blue-light);color:var(--blue)}
+.appt-meta{flex:1}
+.appt-name{font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px}
+.appt-detail{font-size:12px;color:var(--text2);margin-bottom:4px}
+.appt-tags{display:flex;gap:6px;flex-wrap:wrap}
+.appt-tag{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:500}
+.appt-tag.pending{background:var(--amber-light);color:var(--amber)}
+.appt-tag.confirmed{background:var(--green-light);color:var(--green)}
+.appt-tag.rescheduled{background:var(--blue-light);color:var(--blue)}
+.appt-tag.cancelled{background:var(--coral-light);color:var(--coral)}
+.appt-tag.new-patient{background:var(--purple-light);color:var(--purple)}
+.appt-tag.injury{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+
+.appt-actions{display:flex;flex-direction:column;gap:6px;min-width:140px}
+.appt-btn{padding:7px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);transition:.15s;text-align:center}
+.appt-btn-confirm{background:var(--green);color:white}
+.appt-btn-confirm:hover{background:var(--green-mid)}
+.appt-btn-reschedule{background:var(--blue-light);color:var(--blue);border:1px solid #B0C4E8}
+.appt-btn-reschedule:hover{background:#D0DFF5}
+.appt-btn-cancel{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.appt-btn-cancel:hover{background:var(--coral-light);color:var(--coral)}
+
+/* ── TREATMENT PLAN STYLES ── */
+.plan-card{padding:1.25rem;border-bottom:1px solid var(--border);transition:.15s}
+.plan-card:last-child{border-bottom:none}
+.plan-card:hover{background:var(--bg2)}
+.plan-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
+.plan-patient{font-weight:600;font-size:13px;color:var(--text)}
+.plan-condition{font-size:11px;color:var(--text3);margin-top:2px}
+.plan-status-badge{font-size:10px;padding:3px 10px;border-radius:8px;font-weight:600}
+.psb-draft{background:var(--amber-light);color:var(--amber)}
+.psb-active{background:var(--green-light);color:var(--green)}
+.psb-completed{background:var(--surface2);color:var(--text3)}
+.plan-exercises{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.75rem}
+.ex-chip{font-size:11px;padding:3px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2)}
+.plan-actions{display:flex;gap:8px;flex-wrap:wrap}
+.plan-btn-activate{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);background:var(--green);color:white;transition:.15s}
+.plan-btn-activate:hover{background:var(--green-mid)}
+.plan-btn-edit{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);font-family:var(--sans);background:var(--surface2);color:var(--text2);transition:.15s}
+.plan-btn-edit:hover{background:var(--bg2)}
+.plan-note{font-size:11px;color:var(--text3);font-style:italic;padding:.5rem .75rem;background:var(--surface2);border-radius:6px;margin-bottom:.75rem}
+
+/* Plan builder exercise row */
+.ex-row{display:grid;grid-template-columns:1fr 80px 80px 90px 32px;gap:6px;align-items:center;margin-bottom:6px}
+.ex-row input{padding:6px 8px;border:1px solid var(--border);border-radius:7px;font-size:12px;color:var(--text);background:var(--surface2);outline:none;font-family:var(--sans)}
+.ex-row input:focus{border-color:var(--green-mid);background:var(--surface)}
+.ex-del-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:13px;color:var(--text3);transition:.15s}
+.ex-del-btn:hover{background:var(--coral-light);color:var(--coral)}
+.ex-row-header{display:grid;grid-template-columns:1fr 80px 80px 90px 32px;gap:6px;margin-bottom:4px}
+.ex-row-header span{font-size:10px;font-weight:500;color:var(--text3);padding:0 2px}
 </style>
 </head>
 <body>
@@ -501,12 +571,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   </div>
 
   <div class="nav-section">
+    <div class="nav-label-sm">Workflows</div>
+    <button class="nav-item" id="nav-approvals" onclick="showPage('approvals')">
+      <span class="nav-icon">📅</span> Appointment Approvals
+      <span class="nav-badge badge-amber" id="nav-badge-approvals">—</span>
+    </button>
+    <button class="nav-item" id="nav-plans" onclick="showPage('plans')">
+      <span class="nav-icon">🏋️</span> Treatment Plans
+      <span class="nav-badge badge-green" id="nav-badge-plans">—</span>
+    </button>
+  </div>
+
+  <div class="nav-section">
     <div class="nav-label-sm">Tools</div>
     <button class="nav-item" onclick="openUploadModal()">
       <span class="nav-icon">📤</span> Upload Report
-    </button>
-    <button class="nav-item">
-      <span class="nav-icon">📅</span> Appointments
     </button>
   </div>
 
@@ -1025,6 +1104,119 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   </div>
 </div>
 
+
+<!-- ═══ PAGE: APPOINTMENT APPROVALS ═══ -->
+<div class="page" id="page-approvals">
+  <div class="ph">
+    <div class="ph-left">
+      <h1 class="ph-title">Appointment Approvals</h1>
+      <p class="ph-sub" id="approvals-sub">Loading pending requests…</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost" onclick="loadAppointments()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="appr-legend">
+    <span class="appr-leg-item"><span class="appr-dot" style="background:var(--amber)"></span>Pending — awaiting your decision</span>
+    <span class="appr-leg-item"><span class="appr-dot" style="background:var(--green-mid)"></span>Confirmed — patient notified</span>
+    <span class="appr-leg-item"><span class="appr-dot" style="background:var(--blue)"></span>Rescheduled — new time sent</span>
+    <span class="appr-leg-item"><span class="appr-dot" style="background:var(--coral)"></span>Cancelled</span>
+  </div>
+
+  <!-- Pending queue — action required -->
+  <div class="appr-section" id="pendingApprovalSection">
+    <div class="appr-section-header">
+      <div class="appr-section-title">⏳ Pending — Action Required <span class="appr-count" id="pending-count">0</span></div>
+    </div>
+    <div id="pendingAppointmentsList">
+      <div class="empty-state"><div class="es-icon" style="animation:spin 1s linear infinite">⏳</div><div class="es-sub">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- Confirmed/handled -->
+  <div class="appr-section" id="confirmedApprovalSection" style="margin-top:2rem">
+    <div class="appr-section-header">
+      <div class="appr-section-title">✅ Recently Handled <span class="appr-count" id="confirmed-count">0</span></div>
+    </div>
+    <div id="confirmedAppointmentsList"></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: TREATMENT PLANS ═══ -->
+<div class="page" id="page-plans">
+  <div class="ph">
+    <div class="ph-left">
+      <h1 class="ph-title">Treatment Plans</h1>
+      <p class="ph-sub" id="plans-sub">Manage and activate patient exercise programmes</p>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost" onclick="loadTreatmentPlans()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Draft plans — need activation -->
+  <div class="appr-section">
+    <div class="appr-section-header">
+      <div class="appr-section-title">📋 Draft Plans — Awaiting Activation <span class="appr-count" id="draft-count">0</span></div>
+      <div style="font-size:11px;color:var(--text3)">Exercises hidden from patient until you press Start Programme</div>
+    </div>
+    <div id="draftPlansList">
+      <div class="empty-state"><div class="es-icon" style="animation:spin 1s linear infinite">⏳</div><div class="es-sub">Loading plans…</div></div>
+    </div>
+  </div>
+
+  <!-- Active plans -->
+  <div class="appr-section" style="margin-top:2rem">
+    <div class="appr-section-header">
+      <div class="appr-section-title">🟢 Active Programmes <span class="appr-count" id="active-count">0</span></div>
+    </div>
+    <div id="activePlansList"></div>
+  </div>
+</div>
+
+<!-- ── RESCHEDULE MODAL ── -->
+<div class="modal-overlay" id="rescheduleModal" onclick="if(event.target===this)closeRescheduleModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:none;align-items:center;justify-content:center">
+  <div class="modal" style="max-width:420px;width:100%">
+    <div class="modal-header"><div class="modal-title">Reschedule Appointment</div><button class="modal-close" onclick="closeRescheduleModal()">✕</button></div>
+    <div style="padding:1.25rem 1.5rem">
+      <div style="margin-bottom:1rem">
+        <div id="reschedule-patient-name" style="font-weight:600;font-size:15px;margin-bottom:4px"></div>
+        <div id="reschedule-original-time" style="font-size:12px;color:var(--text3)"></div>
+      </div>
+      <label style="display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">New Date & Time</label>
+      <input type="datetime-local" id="reschedule-datetime" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:9px;font-size:13px;color:var(--text);background:var(--surface2);outline:none;font-family:var(--sans)">
+      <label style="display:block;font-size:12px;font-weight:500;color:var(--text2);margin:12px 0 6px">Message to Patient (optional)</label>
+      <textarea id="reschedule-note" rows="3" placeholder="e.g. Apologies, clinic hours changed. This new time works well." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:9px;font-size:12px;color:var(--text);background:var(--surface2);outline:none;font-family:var(--sans);resize:vertical"></textarea>
+    </div>
+    <div style="padding:.75rem 1.5rem 1.25rem;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeRescheduleModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitReschedule()">📨 Send Reschedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PLAN BUILDER MODAL ── -->
+<div class="modal-overlay" id="planBuilderModal" onclick="if(event.target===this)closePlanBuilder()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:none;align-items:center;justify-content:center">
+  <div class="modal" style="max-width:560px;width:100%;max-height:80vh;overflow-y:auto">
+    <div class="modal-header"><div class="modal-title">✏️ Edit Treatment Plan</div><button class="modal-close" onclick="closePlanBuilder()">✕</button></div>
+    <div style="padding:1.25rem 1.5rem" id="planBuilderBody">
+      <div style="font-weight:600;font-size:15px;margin-bottom:4px" id="pb-patient-name"></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:1.25rem" id="pb-plan-id"></div>
+      <div id="pb-exercises"></div>
+      <button class="btn btn-ghost" style="margin-top:.75rem" onclick="addExerciseRow()">+ Add Exercise</button>
+      <div style="margin-top:1.25rem">
+        <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px">Clinical Notes / Restrictions</label>
+        <textarea id="pb-notes" rows="3" placeholder="e.g. Avoid spinal flexion. Progress load cautiously." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:9px;font-size:12px;color:var(--text);background:var(--surface2);outline:none;font-family:var(--sans);resize:vertical"></textarea>
+      </div>
+    </div>
+    <div style="padding:.75rem 1.5rem 1.25rem;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closePlanBuilder()">Cancel</button>
+      <button class="btn" style="background:var(--green);color:white" onclick="savePlanAndActivate()">🚀 Save & Activate Programme</button>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -1107,6 +1299,8 @@ async function applyBackendSession(session) {
 /* ─── App init (no auth) ────────────────────────── */
 async function hydrateDoctorAuth() {
   await loadLivePatients();
+  await loadAppointments();
+  await loadTreatmentPlans();
 }
 
 function showPage(id) {
@@ -1532,6 +1726,413 @@ function showToast(msg) {
     wrap.appendChild(grp);
   });
 })();
+
+/* ════════════════════════════════════════════════
+   APPOINTMENT APPROVAL WORKFLOW
+   State machine: pending → confirmed | rescheduled | cancelled
+   ════════════════════════════════════════════════ */
+
+let allAppointments = [];
+let rescheduleTargetId = null;
+
+async function loadAppointments() {
+  const pendingEl = document.getElementById('pendingAppointmentsList');
+  const confirmedEl = document.getElementById('confirmedAppointmentsList');
+  if (pendingEl) pendingEl.innerHTML = '<div class="empty-state"><div class="es-icon" style="animation:spin 1s linear infinite">⏳</div><div class="es-sub">Loading…</div></div>';
+
+  let appts = [];
+
+  // Try Supabase
+  if (supabaseClient) {
+    const { data, error } = await supabaseClient
+      .from('appointments')
+      .select('*, patients(full_name, primary_concern, phone, email)')
+      .order('appointment_date', { ascending: true });
+    if (!error && data && data.length) {
+      appts = data;
+    } else if (error) {
+      console.warn('Appointments load error:', error);
+    }
+  }
+
+  // Fallback: Render backend
+  if (!appts.length) {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/appointments`);
+      if (resp.ok) {
+        const d = await resp.json();
+        appts = Array.isArray(d) ? d : (d.appointments || d.data || []);
+      }
+    } catch(e) { console.warn('Backend appointments fallback failed', e); }
+  }
+
+  allAppointments = appts;
+  renderAppointments(appts);
+}
+
+function renderAppointments(appts) {
+  const pendingEl = document.getElementById('pendingAppointmentsList');
+  const confirmedEl = document.getElementById('confirmedAppointmentsList');
+  const sub = document.getElementById('approvals-sub');
+
+  const pending = appts.filter(a => (a.status || '').toLowerCase() === 'pending');
+  const handled = appts.filter(a => ['confirmed','rescheduled','cancelled','completed'].includes((a.status || '').toLowerCase()));
+
+  if (document.getElementById('pending-count')) document.getElementById('pending-count').textContent = pending.length;
+  if (document.getElementById('confirmed-count')) document.getElementById('confirmed-count').textContent = handled.length;
+  if (document.getElementById('nav-badge-approvals')) document.getElementById('nav-badge-approvals').textContent = pending.length || '0';
+  if (sub) sub.textContent = `${pending.length} pending approval · ${handled.length} recently handled`;
+
+  if (pendingEl) {
+    if (!pending.length) {
+      pendingEl.innerHTML = `<div class="empty-state"><div class="es-icon">✅</div><div class="es-title">No pending approvals</div><div class="es-sub">All appointment requests have been handled. New requests from patients will appear here.</div></div>`;
+    } else {
+      pendingEl.innerHTML = pending.map(a => appointmentCardHTML(a, true)).join('');
+    }
+  }
+
+  if (confirmedEl) {
+    confirmedEl.innerHTML = handled.length
+      ? handled.map(a => appointmentCardHTML(a, false)).join('')
+      : `<div style="padding:1.25rem;text-align:center;color:var(--text3);font-size:12px">No recently handled appointments.</div>`;
+  }
+}
+
+function appointmentCardHTML(appt, isPending) {
+  const patientName = appt.patients?.full_name || appt.patient_name || appt.full_name || 'Unknown Patient';
+  const condition = appt.patients?.primary_concern || appt.primary_concern || appt.condition || '';
+  const phone = appt.patients?.phone || appt.phone || '';
+  const apptDate = appt.appointment_date ? new Date(appt.appointment_date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Date TBD';
+  const status = (appt.status || 'pending').toLowerCase();
+  const isNew = appt.is_new_patient || false;
+  const injury = appt.injury_type || appt.injury || '';
+  const notes = appt.notes || appt.patient_notes || '';
+
+  const initials = patientName.split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
+
+  const actionButtons = isPending ? `
+    <button class="appt-btn appt-btn-confirm" onclick="approveAppointment('${appt.id}',event)">✅ Confirm</button>
+    <button class="appt-btn appt-btn-reschedule" onclick="openReschedule('${appt.id}','${patientName}','${apptDate}',event)">🗓 Reschedule</button>
+    <button class="appt-btn appt-btn-cancel" onclick="cancelAppointment('${appt.id}',event)">✕ Cancel</button>
+  ` : `<span class="appt-tag ${status}">${statusIcon(status)} ${capitalize(status)}</span>`;
+
+  return `
+    <div class="appt-card ${status}" id="appt-${appt.id}">
+      <div class="appt-left">
+        <div class="appt-av ${isPending ? '' : status}">${initials}</div>
+        <div class="appt-meta">
+          <div class="appt-name">${patientName}</div>
+          <div class="appt-detail">📅 ${apptDate}${phone ? ' · 📞 ' + phone : ''}</div>
+          ${notes ? `<div class="appt-detail" style="color:var(--text3)">💬 "${notes}"</div>` : ''}
+          <div class="appt-tags">
+            ${isPending ? '<span class="appt-tag pending">⏳ Pending Approval</span>' : ''}
+            ${isNew ? '<span class="appt-tag new-patient">🆕 New Patient</span>' : ''}
+            ${condition ? `<span class="appt-tag injury">${condition}</span>` : ''}
+            ${injury ? `<span class="appt-tag injury">${injury}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="appt-actions">${actionButtons}</div>
+    </div>`;
+}
+
+function statusIcon(status) {
+  return {confirmed:'✅',rescheduled:'🗓',cancelled:'✕',pending:'⏳',completed:'✔'}[status] || '';
+}
+function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
+
+async function approveAppointment(id, e) {
+  if (e) e.stopPropagation();
+  await updateAppointmentStatus(id, 'confirmed');
+  showToast('✅ Appointment confirmed — patient notified automatically');
+}
+
+async function cancelAppointment(id, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Cancel this appointment? Patient will be notified.')) return;
+  await updateAppointmentStatus(id, 'cancelled');
+  showToast('❌ Appointment cancelled — patient notified');
+}
+
+async function updateAppointmentStatus(id, status, extraFields = {}) {
+  const payload = { status, ...extraFields };
+  let success = false;
+
+  if (supabaseClient) {
+    const { error } = await supabaseClient.from('appointments').update(payload).eq('id', id);
+    if (!error) success = true;
+    else console.warn('Supabase update error:', error);
+  }
+
+  if (!success) {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/appointments/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) success = true;
+    } catch(e) { console.warn('Backend appointment update failed', e); }
+  }
+
+  // Optimistically update local state and re-render
+  allAppointments = allAppointments.map(a => a.id === id ? { ...a, ...payload } : a);
+  renderAppointments(allAppointments);
+  return success;
+}
+
+function openReschedule(id, name, originalTime, e) {
+  if (e) e.stopPropagation();
+  rescheduleTargetId = id;
+  document.getElementById('reschedule-patient-name').textContent = name;
+  document.getElementById('reschedule-original-time').textContent = 'Current: ' + originalTime;
+  document.getElementById('reschedule-note').value = '';
+  const modal = document.getElementById('rescheduleModal');
+  modal.style.display = 'flex';
+}
+
+function closeRescheduleModal() {
+  document.getElementById('rescheduleModal').style.display = 'none';
+  rescheduleTargetId = null;
+}
+
+async function submitReschedule() {
+  const dt = document.getElementById('reschedule-datetime').value;
+  if (!dt) { showToast('⚠️ Please pick a new date and time'); return; }
+  const note = document.getElementById('reschedule-note').value;
+  await updateAppointmentStatus(rescheduleTargetId, 'rescheduled', { appointment_date: dt, doctor_note: note });
+  closeRescheduleModal();
+  showToast('🗓 Appointment rescheduled — patient notified with new time');
+}
+
+/* ════════════════════════════════════════════════
+   TREATMENT PLAN ACTIVATION
+   State machine: draft → active → completed
+   Patient sees exercises ONLY when status = active
+   ════════════════════════════════════════════════ */
+
+let allPlans = [];
+let activePlanId = null;
+
+async function loadTreatmentPlans() {
+  const draftEl = document.getElementById('draftPlansList');
+  if (draftEl) draftEl.innerHTML = '<div class="empty-state"><div class="es-icon" style="animation:spin 1s linear infinite">⏳</div><div class="es-sub">Loading plans…</div></div>';
+
+  let plans = [];
+
+  if (supabaseClient) {
+    const { data, error } = await supabaseClient
+      .from('treatment_plans')
+      .select('*, patients(full_name, primary_concern)')
+      .order('created_at', { ascending: false });
+    if (!error && data && data.length) plans = data;
+    else if (error) console.warn('Treatment plans load error:', error);
+  }
+
+  if (!plans.length) {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/treatment-plans`);
+      if (resp.ok) {
+        const d = await resp.json();
+        plans = Array.isArray(d) ? d : (d.plans || d.data || []);
+      }
+    } catch(e) {}
+  }
+
+  allPlans = plans;
+  renderTreatmentPlans(plans);
+}
+
+function renderTreatmentPlans(plans) {
+  const draftEl = document.getElementById('draftPlansList');
+  const activeEl = document.getElementById('activePlansList');
+  const sub = document.getElementById('plans-sub');
+
+  const drafts = plans.filter(p => (p.status || 'draft').toLowerCase() === 'draft');
+  const active = plans.filter(p => (p.status || '').toLowerCase() === 'active');
+  const done = plans.filter(p => ['completed','discharged'].includes((p.status || '').toLowerCase()));
+
+  if (document.getElementById('draft-count')) document.getElementById('draft-count').textContent = drafts.length;
+  if (document.getElementById('active-count')) document.getElementById('active-count').textContent = active.length;
+  if (document.getElementById('nav-badge-plans')) document.getElementById('nav-badge-plans').textContent = drafts.length || active.length;
+  if (sub) sub.textContent = `${drafts.length} draft · ${active.length} active · ${done.length} completed`;
+
+  if (draftEl) {
+    draftEl.innerHTML = drafts.length
+      ? drafts.map(p => planCardHTML(p)).join('')
+      : `<div class="empty-state"><div class="es-icon">📋</div><div class="es-title">No draft plans</div><div class="es-sub">Draft plans are created automatically during patient onboarding. They stay hidden from the patient until you activate them.</div></div>`;
+  }
+
+  if (activeEl) {
+    activeEl.innerHTML = active.length
+      ? active.map(p => planCardHTML(p)).join('')
+      : `<div style="padding:1.25rem;text-align:center;color:var(--text3);font-size:12px">No active programmes yet.</div>`;
+  }
+}
+
+function planCardHTML(plan) {
+  const patientName = plan.patients?.full_name || plan.patient_name || 'Unknown Patient';
+  const condition = plan.patients?.primary_concern || plan.condition || plan.diagnosis || '';
+  const status = (plan.status || 'draft').toLowerCase();
+  const exercises = plan.exercises || [];
+  const notes = plan.clinical_notes || plan.restrictions || plan.notes || '';
+  const isDraft = status === 'draft';
+
+  const exChips = Array.isArray(exercises) && exercises.length
+    ? exercises.map(ex => {
+        const name = ex.name || ex.title || ex.exercise_name || (typeof ex === 'string' ? ex : 'Exercise');
+        const meta = ex.sets && ex.reps ? ` ${ex.sets}×${ex.reps}` : '';
+        return `<span class="ex-chip">${name}${meta}</span>`;
+      }).join('')
+    : `<span class="ex-chip" style="color:var(--text3)">No exercises added yet</span>`;
+
+  return `
+    <div class="plan-card" id="plan-${plan.id}">
+      <div class="plan-top">
+        <div>
+          <div class="plan-patient">${patientName}</div>
+          ${condition ? `<div class="plan-condition">${condition}</div>` : ''}
+        </div>
+        <span class="plan-status-badge ${isDraft ? 'psb-draft' : status === 'active' ? 'psb-active' : 'psb-completed'}">${isDraft ? '📋 Draft' : status === 'active' ? '🟢 Active' : '✔ Done'}</span>
+      </div>
+      ${notes ? `<div class="plan-note">⚠ ${notes}</div>` : ''}
+      <div class="plan-exercises">${exChips}</div>
+      <div class="plan-actions">
+        ${isDraft ? `
+          <button class="plan-btn-activate" onclick="activatePlan('${plan.id}')">🚀 Start Programme</button>
+          <button class="plan-btn-edit" onclick="openPlanBuilder('${plan.id}')">✏️ Edit Exercises</button>
+        ` : status === 'active' ? `
+          <button class="plan-btn-edit" onclick="openPlanBuilder('${plan.id}')">✏️ Adjust Plan</button>
+          <button class="plan-btn-edit" onclick="completePlan('${plan.id}')">✔ Mark Complete</button>
+        ` : ''}
+      </div>
+    </div>`;
+}
+
+async function activatePlan(id) {
+  const plan = allPlans.find(p => p.id === id || p.id === String(id));
+  if (!plan) return;
+  const patientName = plan.patients?.full_name || plan.patient_name || 'this patient';
+  if (!confirm(`Activate programme for ${patientName}? Exercises will immediately become visible to the patient.`)) return;
+
+  let success = false;
+  const payload = { status: 'active', activated_at: new Date().toISOString() };
+
+  if (supabaseClient) {
+    const { error } = await supabaseClient.from('treatment_plans').update(payload).eq('id', id);
+    if (!error) success = true;
+    else console.warn('Plan activation error:', error);
+  }
+
+  if (!success) {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/treatment-plans/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) success = true;
+    } catch(e) {}
+  }
+
+  allPlans = allPlans.map(p => p.id === id ? { ...p, ...payload } : p);
+  renderTreatmentPlans(allPlans);
+  showToast(`🚀 Programme activated for ${patientName} — they can now see their exercises`);
+}
+
+async function completePlan(id) {
+  if (!confirm('Mark this programme as complete? Patient will be moved to maintenance/discharge flow.')) return;
+  const payload = { status: 'completed', completed_at: new Date().toISOString() };
+  if (supabaseClient) await supabaseClient.from('treatment_plans').update(payload).eq('id', id);
+  allPlans = allPlans.map(p => p.id === id ? { ...p, ...payload } : p);
+  renderTreatmentPlans(allPlans);
+  showToast('✔ Programme completed — patient moved to discharge/maintenance flow');
+}
+
+// Plan builder modal
+let builderExercises = [];
+
+function openPlanBuilder(id) {
+  const plan = allPlans.find(p => p.id === id || p.id === String(id));
+  if (!plan) return;
+  activePlanId = id;
+  builderExercises = Array.isArray(plan.exercises) ? plan.exercises.map(e => ({
+    name: e.name || e.title || '',
+    sets: e.sets || '',
+    reps: e.reps || '',
+    frequency: e.frequency || ''
+  })) : [];
+
+  document.getElementById('pb-patient-name').textContent = plan.patients?.full_name || plan.patient_name || 'Patient';
+  document.getElementById('pb-plan-id').textContent = `Plan ID: ${id} · Status: ${capitalize(plan.status || 'draft')}`;
+  document.getElementById('pb-notes').value = plan.clinical_notes || plan.restrictions || '';
+  renderExerciseRows();
+  document.getElementById('planBuilderModal').style.display = 'flex';
+}
+
+function closePlanBuilder() {
+  document.getElementById('planBuilderModal').style.display = 'none';
+  activePlanId = null;
+}
+
+function renderExerciseRows() {
+  const container = document.getElementById('pb-exercises');
+  container.innerHTML = `
+    <div class="ex-row-header">
+      <span>Exercise Name</span><span>Sets</span><span>Reps</span><span>Frequency</span><span></span>
+    </div>
+    ${builderExercises.map((ex, i) => `
+      <div class="ex-row">
+        <input type="text" placeholder="e.g. Bird Dog" value="${ex.name}" oninput="builderExercises[${i}].name=this.value">
+        <input type="number" placeholder="3" value="${ex.sets}" oninput="builderExercises[${i}].sets=this.value" min="1">
+        <input type="number" placeholder="10" value="${ex.reps}" oninput="builderExercises[${i}].reps=this.value" min="1">
+        <input type="text" placeholder="Daily" value="${ex.frequency}" oninput="builderExercises[${i}].frequency=this.value">
+        <button class="ex-del-btn" onclick="removeExercise(${i})">✕</button>
+      </div>`).join('')}`;
+}
+
+function addExerciseRow() {
+  builderExercises.push({ name: '', sets: '', reps: '', frequency: '' });
+  renderExerciseRows();
+}
+
+function removeExercise(i) {
+  builderExercises.splice(i, 1);
+  renderExerciseRows();
+}
+
+async function savePlanAndActivate() {
+  const notes = document.getElementById('pb-notes').value;
+  const exToSave = builderExercises.filter(e => e.name.trim());
+  const payload = {
+    exercises: exToSave,
+    clinical_notes: notes,
+    status: 'active',
+    activated_at: new Date().toISOString()
+  };
+
+  let success = false;
+  if (supabaseClient) {
+    const { error } = await supabaseClient.from('treatment_plans').update(payload).eq('id', activePlanId);
+    if (!error) success = true;
+  }
+  if (!success) {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/treatment-plans/${activePlanId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) success = true;
+    } catch(e) {}
+  }
+
+  allPlans = allPlans.map(p => p.id === activePlanId ? { ...p, ...payload } : p);
+  renderTreatmentPlans(allPlans);
+  closePlanBuilder();
+  showToast(`🚀 Plan saved & activated — ${exToSave.length} exercises now visible to patient`);
+}
+
 hydrateDoctorAuth();
 
 
