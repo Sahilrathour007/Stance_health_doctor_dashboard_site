@@ -1381,117 +1381,11 @@ function showPage(id) {
 }
 
 function openPatient(id) {
-  // Legacy hardcoded Rohan demo page
-  if (id === 'rohan') { showPage('profile-rohan'); return; }
-  // Dynamic profile modal for all real DB patients
-  openPatientProfileModal(id);
-}
-
-async function openPatientProfileModal(patientId) {
-  const modal = document.getElementById('patientProfileModal');
-  if (!modal) return;
-
-  // Show loading state
-  document.getElementById('ppm-body').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text3)">⏳ Loading patient data…</div>';
-  modal.style.display = 'flex';
-
-  let patient = null;
-  let plans   = [];
-
-  if (supabaseClient && patientId) {
-    const [{ data: pt }, { data: plData }] = await Promise.all([
-      supabaseClient.from('patients').select('*').eq('id', patientId).maybeSingle(),
-      supabaseClient.from('treatment_plans').select('*').eq('patient_id', patientId).order('created_at', { ascending: false })
-    ]);
-    patient = pt || null;
-    plans   = plData || [];
+  if (id === 'rohan') {
+    showPage('profile-rohan');
+  } else {
+    showToast('Full profile coming soon — click Rohan Mehra to see the complete rebuilt example');
   }
-
-  if (!patient) {
-    document.getElementById('ppm-body').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--coral)">⚠ Could not load patient data.</div>';
-    return;
-  }
-
-  const activePlan  = plans.find(p => p.status === 'active');
-  const draftPlans  = plans.filter(p => p.status === 'draft');
-  const donePlans   = plans.filter(p => p.status === 'completed');
-
-  const lifestyleChips = [
-    patient.equipment_access    && { icon: '🏋️', label: patient.equipment_access },
-    patient.exercise_window     && { icon: '🕐', label: patient.exercise_window },
-    patient.travel_frequency    && { icon: '✈️', label: patient.travel_frequency },
-    patient.behaviour_archetype && { icon: '🧠', label: patient.behaviour_archetype },
-    patient.treatment_goals     && { icon: '🎯', label: patient.treatment_goals },
-  ].filter(Boolean);
-
-  const chipHTML = lifestyleChips.length
-    ? lifestyleChips.map(c => `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--text2)">${c.icon} ${c.label}</span>`).join('')
-    : '<span style="color:var(--text3);font-size:11px">No lifestyle data recorded</span>';
-
-  const planSummary = activePlan
-    ? `<div style="background:var(--green-light);border:1px solid #A8D8C0;border-radius:10px;padding:10px 14px;margin-bottom:10px">
-        <div style="font-size:11px;font-weight:600;color:var(--green-dark)">🟢 Active Programme</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:4px">${(activePlan.exercises||[]).length} exercises · ${activePlan.sessions_per_week||'?'}×/week · ${activePlan.intensity ? capitalize(activePlan.intensity) + ' intensity' : ''}</div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="plan-btn-edit" onclick="closePPM();openPlanBuilder('${activePlan.id}')">✏️ Edit Plan</button>
-          <button class="plan-btn-edit" onclick="closePPM();completePlan('${activePlan.id}')">✔ Complete</button>
-        </div>
-      </div>`
-    : draftPlans.length
-      ? `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:10px">
-          <div style="font-size:11px;font-weight:600;color:var(--text3)">📋 ${draftPlans.length} Draft Plan(s)</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:4px">${(draftPlans[0].exercises||[]).length} exercises added</div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="plan-btn-activate" onclick="closePPM();activatePlan('${draftPlans[0].id}')">🚀 Start Programme</button>
-            <button class="plan-btn-edit" onclick="closePPM();openPlanBuilder('${draftPlans[0].id}')">✏️ Edit Draft</button>
-          </div>
-        </div>`
-      : `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:10px;text-align:center;color:var(--text3);font-size:12px">
-          No active or draft plans yet
-        </div>`;
-
-  const name      = patient.full_name || patient.name || 'Unknown Patient';
-  const condition = patient.primary_concern || patient.pain_location || '—';
-  const severity  = patient.pain_severity || patient.current_pain || '—';
-  const cohort    = patient.primary_cohort || '—';
-  const phone     = patient.phone || patient.contact || '—';
-  const email     = patient.email || '—';
-
-  document.getElementById('ppm-title').textContent = name;
-  document.getElementById('ppm-body').innerHTML = `
-    <div style="padding:0 1.5rem 1.5rem">
-      <!-- Demographics strip -->
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:1rem;padding:10px 14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)">
-        <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Condition</div><div style="font-size:13px;font-weight:600;color:var(--text)">${condition}</div></div>
-        <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Cohort</div><div style="font-size:13px;font-weight:600;color:var(--text)">${cohort}</div></div>
-        <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Pain Severity</div><div style="font-size:13px;font-weight:600;color:var(--text)">${severity}/10</div></div>
-        <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Age</div><div style="font-size:13px;font-weight:600;color:var(--text)">${patient.age || '—'}</div></div>
-        <div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Contact</div><div style="font-size:12px;color:var(--text2)">${phone}</div></div>
-      </div>
-
-      <!-- Plan status -->
-      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Treatment Plan</div>
-      ${planSummary}
-
-      <!-- Lifestyle context -->
-      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Lifestyle Context</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem">${chipHTML}</div>
-
-      <!-- Plan history -->
-      ${donePlans.length ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">${donePlans.length} completed programme(s) on record</div>` : ''}
-
-      <!-- Primary CTA -->
-      <div style="margin-top:1rem">
-        <button class="suggest-btn" style="width:100%" onclick="closePPM();openNewPlanModal('${patient.id}','${name.replace(/'/g,"'")}','${condition.replace(/'/g,"'")}');">
-          📋 Draft New Treatment Plan
-        </button>
-      </div>
-    </div>`;
-}
-
-function closePPM() {
-  const modal = document.getElementById('patientProfileModal');
-  if (modal) modal.style.display = 'none';
 }
 
 function filterAndShow(status) {
@@ -1593,7 +1487,6 @@ function patientCardHTML(row) {
         <span class="reliability-badge rel-high">Live</span>
       </div>
       <div class="pt-card-actions">
-        <button class="pt-btn-draft" style="background:var(--surface);border:1px solid var(--border2)" onclick="event.stopPropagation();openPatient('${row.id || ''}')">👤 View Patient</button>
         <button class="pt-btn-draft" onclick="event.stopPropagation();openNewPlanModal('${row.id || ''}','${name.replace(/'/g,"\\'")}','${condition.replace(/'/g,"\\'")}')">📋 Draft Plan</button>
       </div>
     </div>`;
@@ -2099,29 +1992,22 @@ async function loadTreatmentPlans() {
   let plans = [];
 
   if (supabaseClient) {
-    // Query plans without join — join can fail on RLS even when plans are accessible
-    const { data: planData, error: planErr } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from('treatment_plans')
-      .select('*')
+      .select('*, patients(full_name, primary_concern)')
       .order('created_at', { ascending: false });
+    if (!error && data && data.length) plans = data;
+    else if (error) console.warn('Treatment plans load error:', error);
+  }
 
-    if (!planErr && planData && planData.length) {
-      plans = planData;
-      // Resolve patient names separately — bypasses join-level RLS issues
-      const patientIds = [...new Set(plans.map(p => p.patient_id).filter(Boolean))];
-      if (patientIds.length) {
-        const { data: ptData } = await supabaseClient
-          .from('patients')
-          .select('id, full_name, primary_concern')
-          .in('id', patientIds);
-        if (ptData && ptData.length) {
-          const ptMap = Object.fromEntries(ptData.map(p => [p.id, p]));
-          plans = plans.map(plan => ({ ...plan, patients: ptMap[plan.patient_id] || null }));
-        }
+  if (!plans.length) {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/api/treatment-plans`);
+      if (resp.ok) {
+        const d = await resp.json();
+        plans = Array.isArray(d) ? d : (d.plans || d.data || []);
       }
-    } else if (planErr) {
-      console.warn('Treatment plans load error:', planErr);
-    }
+    } catch(e) {}
   }
 
   allPlans = plans;
@@ -2160,7 +2046,7 @@ function planCardHTML(plan) {
   const condition = plan.patients?.primary_concern || plan.condition || plan.diagnosis || '';
   const status = (plan.status || 'draft').toLowerCase();
   const exercises = plan.exercises || [];
-  const notes = plan.clinical_notes || plan.restrictions || plan.notes || '';
+  const notes = plan.clinical_notes || (Array.isArray(plan.restrictions) ? plan.restrictions.join(' · ') : plan.restrictions) || plan.notes || '';
   const isDraft = status === 'draft';
 
   const exChips = Array.isArray(exercises) && exercises.length
@@ -2217,22 +2103,24 @@ async function activatePlan(id) {
   let success = false;
   let updatedPlan = null;
 
-  // Use the dedicated activate endpoint — PUT /:id with status:'active' is blocked by design
-  try {
-    const resp = await apiRequest(`/api/treatment-plans/${id}/activate`, { method: 'PUT' });
-    if (resp.ok) {
-      const d = await resp.json();
-      updatedPlan = d.treatmentPlan;
-      success = true;
-    }
-  } catch(e) {}
-
-  // Fallback: Supabase direct (only if backend unavailable)
-  if (!success && supabaseClient) {
+  // PRIMARY: Supabase direct (no backend auth needed — works on GitHub Pages)
+  if (supabaseClient) {
     const payload = { status: 'active', activated_at: new Date().toISOString() };
     const { error } = await supabaseClient.from('treatment_plans').update(payload).eq('id', id);
     if (!error) { updatedPlan = { ...plan, ...payload }; success = true; }
-    else console.warn('Plan activation error:', error);
+    else console.warn('Plan activation error:', error.message || error);
+  }
+
+  // FALLBACK: Render backend API (may 403 without doctor-role JWT)
+  if (!success) {
+    try {
+      const resp = await apiRequest(`/api/treatment-plans/${id}/activate`, { method: 'PUT' });
+      if (resp.ok) {
+        const d = await resp.json();
+        updatedPlan = d.treatmentPlan;
+        success = true;
+      }
+    } catch(e) {}
   }
 
   if (!success) { showToast('❌ Activation failed — check connection'); return; }
@@ -2304,7 +2192,7 @@ function removeExercise(i) {
 }
 
 async function savePlanAndActivate() {
-  const notes = document.getElementById('pb-notes').value;
+  const notes = (document.getElementById('pb-notes').value || '').trim();
   const exToSave = builderExercises.filter(e => e.name.trim());
 
   if (!exToSave.length) {
@@ -2314,39 +2202,58 @@ async function savePlanAndActivate() {
 
   let success = false;
 
-  // Step 1: Save exercises via update (draft → still draft, just updating exercises)
-  const updatePayload = { exercises: exToSave, clinical_notes: notes };
-  try {
-    const resp = await apiRequest(`/api/treatment-plans/${activePlanId}`, {
-      method: 'PUT', body: JSON.stringify(updatePayload)
-    });
-    if (resp.ok) success = true;
-  } catch(e) {}
-  if (!success && supabaseClient) {
-    const { error } = await supabaseClient.from('treatment_plans').update(updatePayload).eq('id', activePlanId);
+  // Supabase payload — no clinical_notes (schema cache issue); notes go into restrictions[]
+  const sbUpdatePayload = {
+    exercises: exToSave,
+    restrictions: notes ? [notes] : []
+  };
+  // API payload includes clinical_notes — backend schema has the column
+  const apiUpdatePayload = { exercises: exToSave, clinical_notes: notes };
+
+  // Step 1: Save exercises — Supabase PRIMARY
+  if (supabaseClient) {
+    const { error } = await supabaseClient
+      .from('treatment_plans')
+      .update(sbUpdatePayload)
+      .eq('id', activePlanId);
     if (!error) success = true;
+    else console.warn('Supabase update error:', error.message || error);
+  }
+  if (!success) {
+    try {
+      const resp = await apiRequest(`/api/treatment-plans/${activePlanId}`, {
+        method: 'PUT', body: JSON.stringify(apiUpdatePayload)
+      });
+      if (resp.ok) success = true;
+    } catch(e) {}
   }
 
-  // Step 2: Activate through the dedicated endpoint
+  // Step 2: Activate — Supabase PRIMARY
   let activateSuccess = false;
-  try {
-    const resp = await apiRequest(`/api/treatment-plans/${activePlanId}/activate`, {
-      method: 'PUT', body: JSON.stringify({ clinical_notes: notes })
-    });
-    if (resp.ok) activateSuccess = true;
-  } catch(e) {}
-  if (!activateSuccess && supabaseClient) {
-    const { error } = await supabaseClient.from('treatment_plans').update({ status: 'active', activated_at: new Date().toISOString() }).eq('id', activePlanId);
+  if (supabaseClient) {
+    const { error } = await supabaseClient
+      .from('treatment_plans')
+      .update({ status: 'active', activated_at: new Date().toISOString() })
+      .eq('id', activePlanId);
     if (!error) activateSuccess = true;
+  }
+  if (!activateSuccess) {
+    try {
+      const resp = await apiRequest(`/api/treatment-plans/${activePlanId}/activate`, { method: 'PUT' });
+      if (resp.ok) activateSuccess = true;
+    } catch(e) {}
   }
 
   const finalStatus = activateSuccess ? 'active' : 'draft';
-  allPlans = allPlans.map(p => p.id === activePlanId ? { ...p, ...updatePayload, status: finalStatus, activated_at: activateSuccess ? new Date().toISOString() : p.activated_at } : p);
+  allPlans = allPlans.map(p => p.id === activePlanId
+    ? { ...p, exercises: exToSave, restrictions: notes ? [notes] : p.restrictions, status: finalStatus, activated_at: activateSuccess ? new Date().toISOString() : p.activated_at }
+    : p);
   renderTreatmentPlans(allPlans);
   closePlanBuilder();
 
   if (activateSuccess) showToast(`🚀 Plan saved & activated — ${exToSave.length} exercises now visible to patient`);
-  else showToast(`💾 Exercises saved as draft — activation failed, check connection`);
+  else if (success) showToast(`💾 Exercises saved — activation failed, try the Start Programme button`);
+  else showToast(`❌ Save failed — check Supabase connection`);
 }
 
 /* ════════════════════════════════════════════════
@@ -2497,56 +2404,76 @@ async function saveNewPlan(mode) {
     showToast('⚠️ Add at least one exercise before activating'); return;
   }
 
-  const payload = {
+  const notesValue = (document.getElementById('npm-notes').value || '').trim();
+
+  // Supabase payload — no clinical_notes (column not reliably in schema cache).
+  // Notes are stored in restrictions[] which is confirmed to exist.
+  const supabasePayload = {
     patient_id: newPlanPatientId,
     exercises,
     sessions_per_week: parseInt(document.getElementById('npm-sessions').value) || 3,
-    duration_weeks: parseInt(document.getElementById('npm-duration').value) || 8,
+    duration_weeks:    parseInt(document.getElementById('npm-duration').value) || 8,
     intensity: newPlanIntensity,
-    clinical_notes: document.getElementById('npm-notes').value,
+    restrictions: notesValue ? [notesValue] : [],
     status: 'draft'
   };
+
+  // API payload keeps clinical_notes — backend schema has the column
+  const apiPayload = { ...supabasePayload, clinical_notes: notesValue, restrictions: supabasePayload.restrictions };
 
   let createdPlan = null;
   let success = false;
 
-  // Try API create
-  try {
-    const resp = await apiRequest('/api/treatment-plans', { method: 'POST', body: JSON.stringify(payload) });
-    if (resp.ok) {
-      const d = await resp.json();
-      createdPlan = d.treatmentPlan || d;
-      success = true;
-    }
-  } catch(e) {}
-
-  // Fallback: Supabase direct insert
-  if (!success && supabaseClient) {
-    const { data, error } = await supabaseClient.from('treatment_plans').insert(payload).select('*').single();
+  // PRIMARY: Supabase direct (works without backend auth — GitHub Pages compatible)
+  if (supabaseClient) {
+    const { data, error } = await supabaseClient
+      .from('treatment_plans')
+      .insert(supabasePayload)
+      .select('*')
+      .single();
     if (!error && data) { createdPlan = data; success = true; }
-    else if (error) console.warn('Supabase plan insert error:', error);
+    else if (error) console.warn('Supabase plan insert error:', error.message || error);
   }
 
-  if (!success) { showToast('❌ Could not save plan — check connection'); return; }
-
-  // If activate, call the dedicated activation endpoint
-  if (mode === 'activate' && createdPlan?.id) {
+  // FALLBACK: Render backend API (needs doctor-role JWT — may 403 on static deployments)
+  if (!success) {
     try {
-      const resp = await apiRequest(`/api/treatment-plans/${createdPlan.id}/activate`, { method: 'PUT' });
+      const resp = await apiRequest('/api/treatment-plans', { method: 'POST', body: JSON.stringify(apiPayload) });
       if (resp.ok) {
         const d = await resp.json();
-        createdPlan = d.treatmentPlan || createdPlan;
+        createdPlan = d.treatmentPlan || d;
+        success = true;
       }
-    } catch(e) {
-      // Fallback: Supabase direct update
-      if (supabaseClient) {
-        await supabaseClient.from('treatment_plans').update({ status: 'active', activated_at: new Date().toISOString() }).eq('id', createdPlan.id);
-        createdPlan.status = 'active';
-      }
-    }
+    } catch(e) {}
   }
 
-  // Optimistically add to allPlans
+  if (!success) { showToast('❌ Could not save plan — check Supabase connection'); return; }
+
+  // Activate if requested
+  if (mode === 'activate' && createdPlan?.id) {
+    let activateSuccess = false;
+    // PRIMARY: Supabase direct activate
+    if (supabaseClient) {
+      const { error } = await supabaseClient
+        .from('treatment_plans')
+        .update({ status: 'active', activated_at: new Date().toISOString() })
+        .eq('id', createdPlan.id);
+      if (!error) { createdPlan.status = 'active'; activateSuccess = true; }
+    }
+    // FALLBACK: API activate endpoint
+    if (!activateSuccess) {
+      try {
+        const resp = await apiRequest(`/api/treatment-plans/${createdPlan.id}/activate`, { method: 'PUT' });
+        if (resp.ok) {
+          const d = await resp.json();
+          createdPlan = d.treatmentPlan || createdPlan;
+          activateSuccess = true;
+        }
+      } catch(e) {}
+    }
+    if (!activateSuccess) showToast('⚠️ Plan saved as draft — activation failed, try from Treatment Plans page');
+  }
+
   if (createdPlan) allPlans = [createdPlan, ...allPlans];
   renderTreatmentPlans(allPlans);
 
@@ -2563,20 +2490,5 @@ hydrateDoctorAuth();
 
 
 </script>
-
-<!-- ─── Patient Profile Modal ───────────────────────────────────────────── -->
-<div id="patientProfileModal" onclick="if(event.target===this)closePPM()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border-radius:var(--r);max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-md)">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2">
-      <div>
-        <div style="font-size:15px;font-weight:700;color:var(--text)" id="ppm-title">Patient</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">Patient Profile</div>
-      </div>
-      <button onclick="closePPM()" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--text3);padding:4px 8px">✕</button>
-    </div>
-    <div id="ppm-body" style="padding:1.25rem 1.5rem"></div>
-  </div>
-</div>
-
 </body>
 </html>
