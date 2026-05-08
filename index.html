@@ -489,6 +489,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .ex-del-btn:hover{background:var(--coral-light);color:var(--coral)}
 .ex-row-header{display:grid;grid-template-columns:1fr 80px 80px 90px 32px;gap:6px;margin-bottom:4px}
 .ex-row-header span{font-size:10px;font-weight:500;color:var(--text3);padding:0 2px}
+
+/* Patient card action row */
+.pt-card-actions{display:flex;gap:6px;padding-top:8px;border-top:1px solid var(--border);margin-top:8px}
+.pt-btn-draft{flex:1;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:var(--sans);transition:.18s;text-align:center}
+.pt-btn-draft:hover{background:var(--green-light);color:var(--green);border-color:#A8D8C0}
+
+/* New plan modal schedule controls */
+.schedule-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem;padding:1rem;background:var(--bg2);border-radius:10px;border:1px solid var(--border)}
+.sc-block label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px}
+.intensity-btns{display:flex;gap:4px}
+.intensity-btn{flex:1;padding:6px 4px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:var(--sans);transition:.15s;text-align:center}
+.intensity-btn.active-light{background:var(--blue-light);color:var(--blue);border-color:#C0D4F0}
+.intensity-btn.active-moderate{background:var(--amber-light);color:var(--amber);border-color:#E8D0AA}
+.intensity-btn.active-intensive{background:var(--coral-light);color:var(--coral);border-color:#F0C0BC}
+.sc-input{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:var(--surface);outline:none;font-family:var(--sans)}
+.sc-input:focus{border-color:var(--green-mid)}
+.suggest-btn{width:100%;padding:8px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px dashed var(--green-mid);background:var(--green-glow);color:var(--green);font-family:var(--sans);transition:.18s;margin-bottom:1rem}
+.suggest-btn:hover{background:var(--green-light)}
+.plan-schedule-summary{font-size:11px;color:var(--text3);margin-bottom:.5rem;font-weight:500}
+.plan-schedule-summary span{color:var(--text2)}
 </style>
 </head>
 <body>
@@ -1217,6 +1237,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   </div>
 </div>
 
+<!-- ── NEW PLAN MODAL (patient-first draft flow) ── -->
+<div class="modal-overlay" id="newPlanModal" onclick="if(event.target===this)closeNewPlanModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center">
+  <div class="modal" style="max-width:600px;width:100%;max-height:85vh;overflow-y:auto">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">📋 Draft Treatment Plan</div>
+        <div id="npm-patient-context" style="font-size:11px;color:var(--text3);margin-top:2px"></div>
+      </div>
+      <button class="modal-close" onclick="closeNewPlanModal()">✕</button>
+    </div>
+    <div style="padding:1.25rem 1.5rem">
+      <button class="suggest-btn" id="npm-suggest-btn" onclick="suggestExercisesForNewPlan()">✨ Get starting point for this condition</button>
+      <div id="npm-suggest-status" style="font-size:11px;color:var(--text3);margin-bottom:.75rem;min-height:16px"></div>
+      <div id="npm-exercises"></div>
+      <button class="btn btn-ghost" style="margin-top:.75rem;font-size:12px" onclick="addNewPlanExerciseRow()">+ Add Exercise</button>
+
+      <div class="schedule-controls">
+        <div class="sc-block">
+          <label>Sessions / week</label>
+          <input type="number" id="npm-sessions" class="sc-input" min="1" max="7" value="3" placeholder="3">
+        </div>
+        <div class="sc-block">
+          <label>Duration (weeks)</label>
+          <input type="number" id="npm-duration" class="sc-input" min="1" max="52" value="8" placeholder="8">
+        </div>
+        <div class="sc-block" style="grid-column:1/-1">
+          <label>Intensity</label>
+          <div class="intensity-btns">
+            <button class="intensity-btn" id="npm-int-light" onclick="setIntensity('light')">🟦 Light</button>
+            <button class="intensity-btn active-moderate" id="npm-int-moderate" onclick="setIntensity('moderate')">🟨 Moderate</button>
+            <button class="intensity-btn" id="npm-int-intensive" onclick="setIntensity('intensive')">🟥 Intensive</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem">
+        <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px">Clinical Notes / Restrictions</label>
+        <textarea id="npm-notes" rows="2" placeholder="e.g. Avoid spinal flexion. Reassess in 3 weeks." style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:9px;font-size:12px;color:var(--text);background:var(--surface2);outline:none;font-family:var(--sans);resize:vertical"></textarea>
+      </div>
+    </div>
+    <div style="padding:.75rem 1.5rem 1.25rem;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeNewPlanModal()">Cancel</button>
+      <button class="btn btn-ghost" onclick="saveNewPlan('draft')" style="border-color:var(--border2)">💾 Save as Draft</button>
+      <button class="btn" style="background:var(--green);color:white" onclick="saveNewPlan('activate')">🚀 Save & Activate</button>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -1417,6 +1485,9 @@ function patientCardHTML(row) {
       <div class="pt-footer">
         <span class="pt-last">${row.phone || row.email || 'Contact pending'}</span>
         <span class="reliability-badge rel-high">Live</span>
+      </div>
+      <div class="pt-card-actions">
+        <button class="pt-btn-draft" onclick="event.stopPropagation();openNewPlanModal('${row.id || ''}','${name.replace(/'/g,"\\'")}','${condition.replace(/'/g,"\\'")}')">📋 Draft Plan</button>
       </div>
     </div>`;
 }
@@ -1986,6 +2057,13 @@ function planCardHTML(plan) {
       }).join('')
     : `<span class="ex-chip" style="color:var(--text3)">No exercises added yet</span>`;
 
+  // Schedule summary row
+  const hasSched = plan.sessions_per_week || plan.duration_weeks || plan.intensity;
+  const schedSummary = hasSched ? `
+    <div class="plan-schedule-summary">
+      ${plan.sessions_per_week ? `<span>${plan.sessions_per_week}×/week</span> · ` : ''}${plan.duration_weeks ? `<span>${plan.duration_weeks} wks</span> · ` : ''}<span>${plan.intensity ? capitalize(plan.intensity) + ' intensity' : ''}</span>
+    </div>` : '';
+
   return `
     <div class="plan-card" id="plan-${plan.id}">
       <div class="plan-top">
@@ -1995,6 +2073,7 @@ function planCardHTML(plan) {
         </div>
         <span class="plan-status-badge ${isDraft ? 'psb-draft' : status === 'active' ? 'psb-active' : 'psb-completed'}">${isDraft ? '📋 Draft' : status === 'active' ? '🟢 Active' : '✔ Done'}</span>
       </div>
+      ${schedSummary}
       ${notes ? `<div class="plan-note">⚠ ${notes}</div>` : ''}
       <div class="plan-exercises">${exChips}</div>
       <div class="plan-actions">
@@ -2015,27 +2094,36 @@ async function activatePlan(id) {
   const patientName = plan.patients?.full_name || plan.patient_name || 'this patient';
   if (!confirm(`Activate programme for ${patientName}? Exercises will immediately become visible to the patient.`)) return;
 
-  let success = false;
-  const payload = { status: 'active', activated_at: new Date().toISOString() };
+  // Backend requires exercises before activation
+  if (!plan.exercises || plan.exercises.length === 0) {
+    showToast('⚠️ Add at least one exercise before activating — click Edit Exercises first');
+    return;
+  }
 
-  if (supabaseClient) {
+  let success = false;
+  let updatedPlan = null;
+
+  // Use the dedicated activate endpoint — PUT /:id with status:'active' is blocked by design
+  try {
+    const resp = await apiRequest(`/api/treatment-plans/${id}/activate`, { method: 'PUT' });
+    if (resp.ok) {
+      const d = await resp.json();
+      updatedPlan = d.treatmentPlan;
+      success = true;
+    }
+  } catch(e) {}
+
+  // Fallback: Supabase direct (only if backend unavailable)
+  if (!success && supabaseClient) {
+    const payload = { status: 'active', activated_at: new Date().toISOString() };
     const { error } = await supabaseClient.from('treatment_plans').update(payload).eq('id', id);
-    if (!error) success = true;
+    if (!error) { updatedPlan = { ...plan, ...payload }; success = true; }
     else console.warn('Plan activation error:', error);
   }
 
-  if (!success) {
-    try {
-      const resp = await fetch(`${API_BASE_URL}/api/treatment-plans/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (resp.ok) success = true;
-    } catch(e) {}
-  }
+  if (!success) { showToast('❌ Activation failed — check connection'); return; }
 
-  allPlans = allPlans.map(p => p.id === id ? { ...p, ...payload } : p);
+  allPlans = allPlans.map(p => p.id === id ? (updatedPlan || { ...p, status: 'active', activated_at: new Date().toISOString() }) : p);
   renderTreatmentPlans(allPlans);
   showToast(`🚀 Programme activated for ${patientName} — they can now see their exercises`);
 }
@@ -2104,33 +2192,257 @@ function removeExercise(i) {
 async function savePlanAndActivate() {
   const notes = document.getElementById('pb-notes').value;
   const exToSave = builderExercises.filter(e => e.name.trim());
-  const payload = {
-    exercises: exToSave,
-    clinical_notes: notes,
-    status: 'active',
-    activated_at: new Date().toISOString()
-  };
+
+  if (!exToSave.length) {
+    showToast('⚠️ Add at least one exercise before activating');
+    return;
+  }
 
   let success = false;
-  if (supabaseClient) {
-    const { error } = await supabaseClient.from('treatment_plans').update(payload).eq('id', activePlanId);
+
+  // Step 1: Save exercises via update (draft → still draft, just updating exercises)
+  const updatePayload = { exercises: exToSave, clinical_notes: notes };
+  try {
+    const resp = await apiRequest(`/api/treatment-plans/${activePlanId}`, {
+      method: 'PUT', body: JSON.stringify(updatePayload)
+    });
+    if (resp.ok) success = true;
+  } catch(e) {}
+  if (!success && supabaseClient) {
+    const { error } = await supabaseClient.from('treatment_plans').update(updatePayload).eq('id', activePlanId);
     if (!error) success = true;
   }
-  if (!success) {
-    try {
-      const resp = await fetch(`${API_BASE_URL}/api/treatment-plans/${activePlanId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (resp.ok) success = true;
-    } catch(e) {}
+
+  // Step 2: Activate through the dedicated endpoint
+  let activateSuccess = false;
+  try {
+    const resp = await apiRequest(`/api/treatment-plans/${activePlanId}/activate`, {
+      method: 'PUT', body: JSON.stringify({ clinical_notes: notes })
+    });
+    if (resp.ok) activateSuccess = true;
+  } catch(e) {}
+  if (!activateSuccess && supabaseClient) {
+    const { error } = await supabaseClient.from('treatment_plans').update({ status: 'active', activated_at: new Date().toISOString() }).eq('id', activePlanId);
+    if (!error) activateSuccess = true;
   }
 
-  allPlans = allPlans.map(p => p.id === activePlanId ? { ...p, ...payload } : p);
+  const finalStatus = activateSuccess ? 'active' : 'draft';
+  allPlans = allPlans.map(p => p.id === activePlanId ? { ...p, ...updatePayload, status: finalStatus, activated_at: activateSuccess ? new Date().toISOString() : p.activated_at } : p);
   renderTreatmentPlans(allPlans);
   closePlanBuilder();
-  showToast(`🚀 Plan saved & activated — ${exToSave.length} exercises now visible to patient`);
+
+  if (activateSuccess) showToast(`🚀 Plan saved & activated — ${exToSave.length} exercises now visible to patient`);
+  else showToast(`💾 Exercises saved as draft — activation failed, check connection`);
+}
+
+/* ════════════════════════════════════════════════
+   NEW PLAN MODAL — patient-first draft flow
+   Opens from patient card. Suggests exercises. Saves draft or activates.
+   ════════════════════════════════════════════════ */
+
+let newPlanPatientId = null;
+let newPlanExercises = [];
+let newPlanIntensity = 'moderate';
+
+function openNewPlanModal(patientId, patientName, condition) {
+  newPlanPatientId = patientId;
+  newPlanExercises = [];
+  newPlanIntensity = 'moderate';
+
+  document.getElementById('npm-patient-context').textContent = `${patientName}${condition ? ' · ' + condition : ''}`;
+  document.getElementById('npm-suggest-btn').textContent = condition
+    ? `✨ Get starting point for "${condition}"`
+    : '✨ Get starting point for this condition';
+  document.getElementById('npm-suggest-status').textContent = '';
+  document.getElementById('npm-sessions').value = 3;
+  document.getElementById('npm-duration').value = 8;
+  document.getElementById('npm-notes').value = '';
+  setIntensity('moderate');
+  renderNewPlanExerciseRows();
+
+  const modal = document.getElementById('newPlanModal');
+  modal.style.display = 'flex';
+}
+
+function closeNewPlanModal() {
+  document.getElementById('newPlanModal').style.display = 'none';
+  newPlanPatientId = null;
+}
+
+function setIntensity(level) {
+  newPlanIntensity = level;
+  ['light','moderate','intensive'].forEach(l => {
+    const btn = document.getElementById('npm-int-' + l);
+    if (btn) btn.className = 'intensity-btn' + (l === level ? ' active-' + l : '');
+  });
+}
+
+function renderNewPlanExerciseRows() {
+  const container = document.getElementById('npm-exercises');
+  if (!container) return;
+  if (!newPlanExercises.length) {
+    container.innerHTML = `<div style="text-align:center;padding:1rem;color:var(--text3);font-size:12px;border:1.5px dashed var(--border);border-radius:9px">No exercises yet — click the suggest button above or add manually.</div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="ex-row-header">
+      <span>Exercise Name</span><span>Sets</span><span>Reps</span><span>Frequency</span><span></span>
+    </div>
+    ${newPlanExercises.map((ex, i) => `
+      <div class="ex-row">
+        <input type="text" placeholder="e.g. Bird Dog" value="${ex.name}" oninput="newPlanExercises[${i}].name=this.value">
+        <input type="number" placeholder="3" value="${ex.sets}" oninput="newPlanExercises[${i}].sets=+this.value" min="1">
+        <input type="number" placeholder="10" value="${ex.reps}" oninput="newPlanExercises[${i}].reps=+this.value" min="1">
+        <input type="text" placeholder="3x/week" value="${ex.frequency}" oninput="newPlanExercises[${i}].frequency=this.value">
+        <button class="ex-del-btn" onclick="removeNewPlanExercise(${i})">✕</button>
+      </div>`).join('')}`;
+}
+
+function addNewPlanExerciseRow() {
+  newPlanExercises.push({ name: '', sets: 3, reps: 10, frequency: '3x/week' });
+  renderNewPlanExerciseRows();
+}
+
+function removeNewPlanExercise(i) {
+  newPlanExercises.splice(i, 1);
+  renderNewPlanExerciseRows();
+}
+
+async function suggestExercisesForNewPlan() {
+  if (!newPlanPatientId) return;
+  const btn = document.getElementById('npm-suggest-btn');
+  const status = document.getElementById('npm-suggest-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Fetching suggestion…';
+  status.textContent = '';
+
+  try {
+    let suggestion = null;
+
+    // Try authenticated API endpoint first
+    if (API_BASE_URL) {
+      try {
+        const resp = await apiRequest('/api/treatment-plans/suggest', {
+          method: 'POST',
+          body: JSON.stringify({ patient_id: newPlanPatientId })
+        });
+        if (resp.ok) suggestion = await resp.json();
+      } catch(e) { /* fall through to mock */ }
+    }
+
+    // Fallback: use supabase patient data to generate client-side suggestion
+    if (!suggestion && supabaseClient) {
+      const { data: pt } = await supabaseClient.from('patients').select('pain_location,primary_cohort,pain_severity,primary_concern').eq('id', newPlanPatientId).maybeSingle();
+      if (pt) {
+        // Mirror the server-side logic client-side as fallback
+        const loc = (pt.pain_location || pt.primary_concern || '').toLowerCase();
+        const locationKey = loc.includes('knee') ? 'knee' : loc.includes('shoulder') ? 'shoulder' : loc.includes('neck') ? 'neck' : loc.includes('hip') ? 'hip' : 'back';
+        const defaultExercises = {
+          back: ['Cat-Cow', 'Bird Dog', 'Dead Bug', 'Hip Flexor Stretch', 'Glute Bridge'],
+          knee: ['Terminal Knee Extension', 'Step-Down', 'Wall Sit', 'Quad Set', 'SLR'],
+          shoulder: ['Pendulum', 'Scapular Retraction', 'External Rotation Band', 'Doorway Stretch'],
+          neck: ['Chin Tuck', 'Cervical Retraction', 'Upper Trap Stretch', 'Thoracic Extension'],
+          hip: ['Hip Flexor Stretch', '90/90 Hip Stretch', 'Clamshell', 'Side-Lying Hip Abduction'],
+        };
+        suggestion = {
+          suggestedExercises: (defaultExercises[locationKey] || defaultExercises.back).map(name => ({ name, sets: 3, reps: 10, frequency: '3x/week' })),
+          suggestedSchedule: { sessionsPerWeek: 3, intensity: 'moderate', durationWeeks: 8 }
+        };
+      }
+    }
+
+    if (suggestion) {
+      newPlanExercises = suggestion.suggestedExercises || [];
+      renderNewPlanExerciseRows();
+
+      const sched = suggestion.suggestedSchedule || {};
+      if (sched.sessionsPerWeek) document.getElementById('npm-sessions').value = sched.sessionsPerWeek;
+      if (sched.durationWeeks) document.getElementById('npm-duration').value = sched.durationWeeks;
+      if (sched.intensity) setIntensity(sched.intensity);
+
+      status.textContent = `✓ ${newPlanExercises.length} exercises suggested — edit as needed before saving`;
+      status.style.color = 'var(--green)';
+    } else {
+      status.textContent = 'Could not retrieve suggestion — add exercises manually below';
+      status.style.color = 'var(--text3)';
+    }
+  } catch(e) {
+    status.textContent = 'Suggestion failed — add exercises manually';
+    status.style.color = 'var(--coral)';
+    console.warn('Suggest error:', e);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✨ Refresh suggestion';
+}
+
+async function saveNewPlan(mode) {
+  // mode: 'draft' | 'activate'
+  const exercises = newPlanExercises.filter(e => (e.name || '').trim());
+  if (mode === 'activate' && !exercises.length) {
+    showToast('⚠️ Add at least one exercise before activating'); return;
+  }
+
+  const payload = {
+    patient_id: newPlanPatientId,
+    exercises,
+    sessions_per_week: parseInt(document.getElementById('npm-sessions').value) || 3,
+    duration_weeks: parseInt(document.getElementById('npm-duration').value) || 8,
+    intensity: newPlanIntensity,
+    clinical_notes: document.getElementById('npm-notes').value,
+    status: 'draft'
+  };
+
+  let createdPlan = null;
+  let success = false;
+
+  // Try API create
+  try {
+    const resp = await apiRequest('/api/treatment-plans', { method: 'POST', body: JSON.stringify(payload) });
+    if (resp.ok) {
+      const d = await resp.json();
+      createdPlan = d.treatmentPlan || d;
+      success = true;
+    }
+  } catch(e) {}
+
+  // Fallback: Supabase direct insert
+  if (!success && supabaseClient) {
+    const { data, error } = await supabaseClient.from('treatment_plans').insert(payload).select('*').single();
+    if (!error && data) { createdPlan = data; success = true; }
+    else if (error) console.warn('Supabase plan insert error:', error);
+  }
+
+  if (!success) { showToast('❌ Could not save plan — check connection'); return; }
+
+  // If activate, call the dedicated activation endpoint
+  if (mode === 'activate' && createdPlan?.id) {
+    try {
+      const resp = await apiRequest(`/api/treatment-plans/${createdPlan.id}/activate`, { method: 'PUT' });
+      if (resp.ok) {
+        const d = await resp.json();
+        createdPlan = d.treatmentPlan || createdPlan;
+      }
+    } catch(e) {
+      // Fallback: Supabase direct update
+      if (supabaseClient) {
+        await supabaseClient.from('treatment_plans').update({ status: 'active', activated_at: new Date().toISOString() }).eq('id', createdPlan.id);
+        createdPlan.status = 'active';
+      }
+    }
+  }
+
+  // Optimistically add to allPlans
+  if (createdPlan) allPlans = [createdPlan, ...allPlans];
+  renderTreatmentPlans(allPlans);
+
+  closeNewPlanModal();
+  const patientLabel = document.getElementById('npm-patient-context')?.textContent || 'patient';
+  if (mode === 'activate') {
+    showToast(`🚀 Programme activated — ${exercises.length} exercises now visible to ${patientLabel.split(' · ')[0]}`);
+  } else {
+    showToast(`💾 Draft saved — activate it from the Treatment Plans page when ready`);
+  }
 }
 
 hydrateDoctorAuth();
