@@ -2094,7 +2094,6 @@ async function activatePlan(id) {
   const patientName = plan.patients?.full_name || plan.patient_name || 'this patient';
   if (!confirm(`Activate programme for ${patientName}? Exercises will immediately become visible to the patient.`)) return;
 
-  // Backend requires exercises before activation
   if (!plan.exercises || plan.exercises.length === 0) {
     showToast('⚠️ Add at least one exercise before activating — click Edit Exercises first');
     return;
@@ -2103,7 +2102,6 @@ async function activatePlan(id) {
   let success = false;
   let updatedPlan = null;
 
-  // PRIMARY: Supabase direct (no backend auth needed — works on GitHub Pages)
   if (supabaseClient) {
     const payload = { status: 'active', activated_at: new Date().toISOString() };
     const { error } = await supabaseClient.from('treatment_plans').update(payload).eq('id', id);
@@ -2111,16 +2109,15 @@ async function activatePlan(id) {
     else console.warn('Plan activation error:', error.message || error);
   }
 
-  // FALLBACK: Render backend API (may 403 without doctor-role JWT)
+  // FIX: apiRequest returns parsed data, not a Response
   if (!success) {
     try {
-      const resp = await apiRequest(`/api/treatment-plans/${id}/activate`, { method: 'PUT' });
-      if (resp.ok) {
-        const d = await resp.json();
-        updatedPlan = d.treatmentPlan;
-        success = true;
-      }
-    } catch(e) {}
+      const data = await apiRequest(`/api/treatment-plans/${id}/activate`, { method: 'PUT' });
+      updatedPlan = data.treatmentPlan || data;
+      success = true;
+    } catch(e) {
+      console.warn('Backend activate fallback failed:', e);
+    }
   }
 
   if (!success) { showToast('❌ Activation failed — check connection'); return; }
@@ -2202,15 +2199,14 @@ async function savePlanAndActivate() {
 
   let success = false;
 
-  // Supabase payload — no clinical_notes (schema cache issue); notes go into restrictions[]
+  // FIX: clinical_notes now included — column exists after migration
   const sbUpdatePayload = {
     exercises: exToSave,
+    clinical_notes: notes || null,
     restrictions: notes ? [notes] : []
   };
-  // API payload includes clinical_notes — backend schema has the column
   const apiUpdatePayload = { exercises: exToSave, clinical_notes: notes };
 
-  // Step 1: Save exercises — Supabase PRIMARY
   if (supabaseClient) {
     const { error } = await supabaseClient
       .from('treatment_plans')
@@ -2219,16 +2215,18 @@ async function savePlanAndActivate() {
     if (!error) success = true;
     else console.warn('Supabase update error:', error.message || error);
   }
+  // FIX: apiRequest returns data, not Response
   if (!success) {
     try {
-      const resp = await apiRequest(`/api/treatment-plans/${activePlanId}`, {
+      await apiRequest(`/api/treatment-plans/${activePlanId}`, {
         method: 'PUT', body: JSON.stringify(apiUpdatePayload)
       });
-      if (resp.ok) success = true;
-    } catch(e) {}
+      success = true;
+    } catch(e) {
+      console.warn('Backend plan update fallback failed:', e);
+    }
   }
 
-  // Step 2: Activate — Supabase PRIMARY
   let activateSuccess = false;
   if (supabaseClient) {
     const { error } = await supabaseClient
@@ -2239,14 +2237,17 @@ async function savePlanAndActivate() {
   }
   if (!activateSuccess) {
     try {
-      const resp = await apiRequest(`/api/treatment-plans/${activePlanId}/activate`, { method: 'PUT' });
-      if (resp.ok) activateSuccess = true;
-    } catch(e) {}
+      // FIX: apiRequest returns data, not Response
+      await apiRequest(`/api/treatment-plans/${activePlanId}/activate`, { method: 'PUT' });
+      activateSuccess = true;
+    } catch(e) {
+      console.warn('Backend activate fallback failed:', e);
+    }
   }
 
   const finalStatus = activateSuccess ? 'active' : 'draft';
   allPlans = allPlans.map(p => p.id === activePlanId
-    ? { ...p, exercises: exToSave, restrictions: notes ? [notes] : p.restrictions, status: finalStatus, activated_at: activateSuccess ? new Date().toISOString() : p.activated_at }
+    ? { ...p, exercises: exToSave, clinical_notes: notes || p.clinical_notes, restrictions: notes ? [notes] : p.restrictions, status: finalStatus, activated_at: activateSuccess ? new Date().toISOString() : p.activated_at }
     : p);
   renderTreatmentPlans(allPlans);
   closePlanBuilder();
@@ -2340,33 +2341,41 @@ async function suggestExercisesForNewPlan() {
   try {
     let suggestion = null;
 
-    // Try authenticated API endpoint first
+    // FIX: apiRequest returns parsed data directly — no .ok / .json() needed
     if (API_BASE_URL) {
       try {
-        const resp = await apiRequest('/api/treatment-plans/suggest', {
+        suggestion = await apiRequest('/api/treatment-plans/suggest', {
           method: 'POST',
           body: JSON.stringify({ patient_id: newPlanPatientId })
         });
-        if (resp.ok) suggestion = await resp.json();
-      } catch(e) { /* fall through to mock */ }
+      } catch(e) {
+        console.warn('Backend suggest failed, falling back to client-side:', e);
+      }
     }
 
-    // Fallback: use supabase patient data to generate client-side suggestion
     if (!suggestion && supabaseClient) {
-      const { data: pt } = await supabaseClient.from('patients').select('pain_location,primary_cohort,pain_severity,primary_concern').eq('id', newPlanPatientId).maybeSingle();
+      const { data: pt } = await supabaseClient
+        .from('patients')
+        .select('pain_location,primary_cohort,pain_severity,primary_concern')
+        .eq('id', newPlanPatientId)
+        .maybeSingle();
       if (pt) {
-        // Mirror the server-side logic client-side as fallback
         const loc = (pt.pain_location || pt.primary_concern || '').toLowerCase();
-        const locationKey = loc.includes('knee') ? 'knee' : loc.includes('shoulder') ? 'shoulder' : loc.includes('neck') ? 'neck' : loc.includes('hip') ? 'hip' : 'back';
+        const locationKey = loc.includes('knee') ? 'knee'
+          : loc.includes('shoulder')             ? 'shoulder'
+          : loc.includes('neck')                 ? 'neck'
+          : loc.includes('hip')                  ? 'hip'
+          : 'back';
         const defaultExercises = {
-          back: ['Cat-Cow', 'Bird Dog', 'Dead Bug', 'Hip Flexor Stretch', 'Glute Bridge'],
-          knee: ['Terminal Knee Extension', 'Step-Down', 'Wall Sit', 'Quad Set', 'SLR'],
+          back:     ['Cat-Cow', 'Bird Dog', 'Dead Bug', 'Hip Flexor Stretch', 'Glute Bridge'],
+          knee:     ['Terminal Knee Extension', 'Step-Down', 'Wall Sit', 'Quad Set', 'SLR'],
           shoulder: ['Pendulum', 'Scapular Retraction', 'External Rotation Band', 'Doorway Stretch'],
-          neck: ['Chin Tuck', 'Cervical Retraction', 'Upper Trap Stretch', 'Thoracic Extension'],
-          hip: ['Hip Flexor Stretch', '90/90 Hip Stretch', 'Clamshell', 'Side-Lying Hip Abduction'],
+          neck:     ['Chin Tuck', 'Cervical Retraction', 'Upper Trap Stretch', 'Thoracic Extension'],
+          hip:      ['Hip Flexor Stretch', '90/90 Hip Stretch', 'Clamshell', 'Side-Lying Hip Abduction'],
         };
         suggestion = {
-          suggestedExercises: (defaultExercises[locationKey] || defaultExercises.back).map(name => ({ name, sets: 3, reps: 10, frequency: '3x/week' })),
+          suggestedExercises: (defaultExercises[locationKey] || defaultExercises.back)
+            .map(name => ({ name, sets: 3, reps: 10, frequency: '3x/week' })),
           suggestedSchedule: { sessionsPerWeek: 3, intensity: 'moderate', durationWeeks: 8 }
         };
       }
@@ -2375,12 +2384,10 @@ async function suggestExercisesForNewPlan() {
     if (suggestion) {
       newPlanExercises = suggestion.suggestedExercises || [];
       renderNewPlanExerciseRows();
-
       const sched = suggestion.suggestedSchedule || {};
       if (sched.sessionsPerWeek) document.getElementById('npm-sessions').value = sched.sessionsPerWeek;
-      if (sched.durationWeeks) document.getElementById('npm-duration').value = sched.durationWeeks;
-      if (sched.intensity) setIntensity(sched.intensity);
-
+      if (sched.durationWeeks)   document.getElementById('npm-duration').value = sched.durationWeeks;
+      if (sched.intensity)       setIntensity(sched.intensity);
       status.textContent = `✓ ${newPlanExercises.length} exercises suggested — edit as needed before saving`;
       status.style.color = 'var(--green)';
     } else {
@@ -2398,7 +2405,6 @@ async function suggestExercisesForNewPlan() {
 }
 
 async function saveNewPlan(mode) {
-  // mode: 'draft' | 'activate'
   const exercises = newPlanExercises.filter(e => (e.name || '').trim());
   if (mode === 'activate' && !exercises.length) {
     showToast('⚠️ Add at least one exercise before activating'); return;
@@ -2406,25 +2412,23 @@ async function saveNewPlan(mode) {
 
   const notesValue = (document.getElementById('npm-notes').value || '').trim();
 
-  // Supabase payload — no clinical_notes (column not reliably in schema cache).
-  // Notes are stored in restrictions[] which is confirmed to exist.
+  // FIX: clinical_notes now included — column exists after migration
   const supabasePayload = {
     patient_id: newPlanPatientId,
     exercises,
     sessions_per_week: parseInt(document.getElementById('npm-sessions').value) || 3,
-    duration_weeks:    parseInt(document.getElementById('npm-duration').value) || 8,
+    duration_weeks:    parseInt(document.getElementById('npm-duration').value)  || 8,
     intensity: newPlanIntensity,
+    clinical_notes: notesValue || null,
     restrictions: notesValue ? [notesValue] : [],
     status: 'draft'
   };
 
-  // API payload keeps clinical_notes — backend schema has the column
-  const apiPayload = { ...supabasePayload, clinical_notes: notesValue, restrictions: supabasePayload.restrictions };
+  const apiPayload = { ...supabasePayload };
 
   let createdPlan = null;
   let success = false;
 
-  // PRIMARY: Supabase direct (works without backend auth — GitHub Pages compatible)
   if (supabaseClient) {
     const { data, error } = await supabaseClient
       .from('treatment_plans')
@@ -2435,24 +2439,22 @@ async function saveNewPlan(mode) {
     else if (error) console.warn('Supabase plan insert error:', error.message || error);
   }
 
-  // FALLBACK: Render backend API (needs doctor-role JWT — may 403 on static deployments)
+  // FIX: apiRequest returns data, not Response — no resp.ok / .json() check
   if (!success) {
     try {
-      const resp = await apiRequest('/api/treatment-plans', { method: 'POST', body: JSON.stringify(apiPayload) });
-      if (resp.ok) {
-        const d = await resp.json();
-        createdPlan = d.treatmentPlan || d;
-        success = true;
-      }
-    } catch(e) {}
+      const d = await apiRequest('/api/treatment-plans', { method: 'POST', body: JSON.stringify(apiPayload) });
+      createdPlan = d.treatmentPlan || d;
+      success = true;
+    } catch(e) {
+      console.warn('Backend create plan fallback failed:', e);
+    }
   }
 
   if (!success) { showToast('❌ Could not save plan — check Supabase connection'); return; }
 
-  // Activate if requested
   if (mode === 'activate' && createdPlan?.id) {
     let activateSuccess = false;
-    // PRIMARY: Supabase direct activate
+
     if (supabaseClient) {
       const { error } = await supabaseClient
         .from('treatment_plans')
@@ -2460,18 +2462,21 @@ async function saveNewPlan(mode) {
         .eq('id', createdPlan.id);
       if (!error) { createdPlan.status = 'active'; activateSuccess = true; }
     }
-    // FALLBACK: API activate endpoint
+
+    // FIX: apiRequest returns data, not Response
     if (!activateSuccess) {
       try {
-        const resp = await apiRequest(`/api/treatment-plans/${createdPlan.id}/activate`, { method: 'PUT' });
-        if (resp.ok) {
-          const d = await resp.json();
-          createdPlan = d.treatmentPlan || createdPlan;
-          activateSuccess = true;
-        }
-      } catch(e) {}
+        const d = await apiRequest(`/api/treatment-plans/${createdPlan.id}/activate`, { method: 'PUT' });
+        createdPlan = d.treatmentPlan || createdPlan;
+        activateSuccess = true;
+      } catch(e) {
+        console.warn('Backend activate fallback failed:', e);
+      }
     }
-    if (!activateSuccess) showToast('⚠️ Plan saved as draft — activation failed, try from Treatment Plans page');
+
+    if (!activateSuccess) {
+      showToast('⚠️ Plan saved as draft — activation failed, try from Treatment Plans page');
+    }
   }
 
   if (createdPlan) allPlans = [createdPlan, ...allPlans];
